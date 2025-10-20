@@ -17,14 +17,20 @@ const Header = () => {
           </span>
         Blog App
       </Link>
-      <form>
-        <TextInput
-          type='text'
-          placeholder='Search...'
-          rightIcon={AiOutlineSearch}
-          className='hidden lg:inline'
-        />
-      </form>
+
+          {/* Search Bar */}
+      <div className='flex-1 max-w-lg mx-4'>
+        <form className='w-full'>
+          <TextInput
+            type='text'
+            placeholder='Search articles...'
+            rightIcon={AiOutlineSearch}
+            className='hidden lg:inline rounded-full'
+            size="md"
+          />
+        </form>
+      </div>
+
       <Button className='w-12 h-10 lg:hidden' color='gray' pill>
         <AiOutlineSearch />
       </Button>
