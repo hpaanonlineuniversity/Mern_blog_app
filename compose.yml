@@ -1,0 +1,12 @@
+services:
+  backend:
+    build: 
+      context: ./backend
+      dockerfile: Dockerfile
+    ports:
+      - "3000:3000"
+    volumes:
+        - node_modules_backend:/app/node_modules
+        - ./backend:/app
+volumes:
+  node_modules_backend:
