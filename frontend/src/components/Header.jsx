@@ -35,6 +35,20 @@ const Header = () => {
         <AiOutlineSearch />
       </Button>
 
+       {/* Navigation Links - NavbarLink ကို တိုက်ရိုက်သုံးပါ */}
+        <NavbarCollapse>
+          <NavbarLink as={Link} to='/'>
+            Home
+          </NavbarLink>
+          <NavbarLink as={Link} to='/about'>
+            About
+          </NavbarLink>
+          <NavbarLink as={Link} to='/projects'>
+            Projects
+          </NavbarLink>
+        </NavbarCollapse>
+
+
         <div className='flex gap-2 md:order-2'>
           <Button
             className='w-12 h-10 hidden sm:inline'
@@ -52,18 +66,6 @@ const Header = () => {
           
         </div>
 
-       {/* Navigation Links - NavbarLink ကို တိုက်ရိုက်သုံးပါ */}
-        <NavbarCollapse>
-          <NavbarLink as={Link} to='/'>
-            Home
-          </NavbarLink>
-          <NavbarLink as={Link} to='/about'>
-            About
-          </NavbarLink>
-          <NavbarLink as={Link} to='/projects'>
-            Projects
-          </NavbarLink>
-        </NavbarCollapse>
 
         {/* NavbarToggle ထည့်ပါ (mobile menu အတွက်) */}
         <NavbarToggle />
