@@ -16,6 +16,8 @@ services:
       - MONGO_PORT=${MONGO_PORT}
       - MONGO_USER=${MONGO_USER}
       - MONGO_PASSWORD=${MONGO_PASSWORD}
+    depends_on:
+      - mongodb
   mongodb:
     image: mongo:noble
     environment:

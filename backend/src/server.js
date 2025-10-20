@@ -1,8 +1,12 @@
 import express from 'express';
 import connectDB from './configs/db.js';
+import userRoutes from './routes/user_route.js';
+import authRoutes from './routes/auth_route.js';
 
 const app = new express();
 const PORT = process.env.PORT || 3000;
+
+app.use(express.json());
 
 app.get('/', (req, res) => {
     res.send('Hello World!123');
@@ -18,3 +22,6 @@ connectDB().then(() => {
   console.error('Database connection failed:', err);
   process.exit(1); // Exit process with failure
 });
+
+app.use('/api/user', userRoutes);
+app.use('/api/auth', authRoutes);
