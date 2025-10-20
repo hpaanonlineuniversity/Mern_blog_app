@@ -17,18 +17,13 @@ export default function SignUp() {
 
     e.preventDefault();
 
-    const API_BASE_URL = import.meta.env.DEV 
-      ? 'http://localhost:3000'  // Browser ကနေခေါ်ရင်
-      : 'http://backend:3000';    // Docker container ထဲကခေါ်ရင်
-
-
     if (!formData.username || !formData.email || !formData.password) {
       return setErrorMessage('Please fill out all fields.');
     }
     try {
       setLoading(true);
       setErrorMessage(null);
-      const res = await fetch(`${API_BASE_URL}/api/auth/signup`, {
+      const res = await fetch('/api/auth/signup', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         credentials: 'include',
