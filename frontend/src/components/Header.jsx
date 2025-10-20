@@ -5,6 +5,7 @@ import { AiOutlineSearch } from 'react-icons/ai';
 import { FaMoon, FaSun } from 'react-icons/fa';
 
 const Header = () => {
+  const file = useLocation().pathname;
   return (
     <>
       <Navbar className='border-b-2'>
@@ -37,13 +38,13 @@ const Header = () => {
 
        {/* Navigation Links - NavbarLink ကို တိုက်ရိုက်သုံးပါ */}
         <NavbarCollapse>
-          <NavbarLink as={Link} to='/'>
+          <NavbarLink as={Link} to='/' active={file === "/"}>
             Home
           </NavbarLink>
-          <NavbarLink as={Link} to='/about'>
+          <NavbarLink as={Link} to='/about' active={file === "/about"}>
             About
           </NavbarLink>
-          <NavbarLink as={Link} to='/projects'>
+          <NavbarLink as={Link} to='/projects'active={file === "/projects"}>
             Projects
           </NavbarLink>
         </NavbarCollapse>
