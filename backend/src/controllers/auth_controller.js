@@ -1,6 +1,7 @@
 import User from '../models/user_model.js';
 import bcryptjs from 'bcryptjs';
 import { errorHandler } from '../utils/error.js';
+import { JWT_SECRET } from '../configs/config.js'
 import jwt from 'jsonwebtoken';
 
 export const signup = async (req, res, next) => {
@@ -51,7 +52,7 @@ export const signin = async (req, res, next) => {
     }
     const token = jwt.sign(
       { id: validUser._id, isAdmin: validUser.isAdmin },
-      process.env.JWT_SECRET
+      JWT_SECRET
     );
 
     const { password: pass, ...rest } = validUser._doc;
@@ -74,7 +75,7 @@ export const google = async (req, res, next) => {
     if (user) {
       const token = jwt.sign(
         { id: user._id, isAdmin: user.isAdmin },
-        process.env.JWT_SECRET
+        JWT_SECRET
       );
       const { password, ...rest } = user._doc;
       res
@@ -99,7 +100,7 @@ export const google = async (req, res, next) => {
       await newUser.save();
       const token = jwt.sign(
         { id: newUser._id, isAdmin: newUser.isAdmin },
-        process.env.JWT_SECRET
+        JWT_SECRET
       );
       const { password, ...rest } = newUser._doc;
       res
