@@ -2,11 +2,46 @@ import express from 'express';
 import connectDB from './configs/db.js';
 import userRoutes from './routes/user_route.js';
 import authRoutes from './routes/auth_route.js';
+import cors from 'cors';
+
+
+const corsOptions = {
+  origin: (origin, callback) => {
+    const allowedOrigins = [
+      'http://localhost:5173',
+      'http://127.0.0.1:5173', 
+      'http://frontend:5173',
+    ];
+    
+    if (!origin || allowedOrigins.indexOf(origin) !== -1) {
+      callback(null, true);
+    } else {
+      callback(new Error('Not allowed by CORS'));
+    }
+  },
+  credentials: true, // ✅ ဒါအရေးကြီးတယ်
+  methods: ['GET', 'POST', 'PUT', 'DELETE', 'PATCH', 'OPTIONS'],
+  allowedHeaders: [
+    'Content-Type', 
+    'Authorization', 
+    'X-Requested-With',
+    'Cookie' // ✅ ဒါထည့်ကြည့်ပါ
+  ],
+  exposedHeaders: ['Set-Cookie'], // ✅ ဒါလည်းထည့်ပါ
+  optionsSuccessStatus: 200
+};
+
 
 const app = new express();
 const PORT = process.env.PORT || 3000;
 
-app.use(express.json());
+//CORS middleware
+app.use(cors(corsOptions));
+
+// JSON payload limit တိုးပါ
+app.use(express.json({ limit: '10mb' })); // Default: 100kb
+app.use(express.urlencoded({ extended: true, limit: '10mb' }));
+
 
 app.get('/', (req, res) => {
     res.send('Hello World!123');

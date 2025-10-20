@@ -1,18 +1,51 @@
 import { Alert, Button, Label, Spinner, TextInput, Card } from 'flowbite-react';
 import { useState } from 'react';
-import { Link } from 'react-router';
+import { Link, useNavigate } from 'react-router';
+
 
 export default function SignUp() {
   const [formData, setFormData] = useState({});
   const [errorMessage, setErrorMessage] = useState(null);
   const [loading, setLoading] = useState(false);
+  const navigate = useNavigate();
 
   const handleChange = (e) => {
     setFormData({ ...formData, [e.target.id]: e.target.value.trim() });
   };
 
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
+
     e.preventDefault();
+
+    const API_BASE_URL = import.meta.env.DEV 
+      ? 'http://localhost:3000'  // Browser ကနေခေါ်ရင်
+      : 'http://backend:3000';    // Docker container ထဲကခေါ်ရင်
+
+
+    if (!formData.username || !formData.email || !formData.password) {
+      return setErrorMessage('Please fill out all fields.');
+    }
+    try {
+      setLoading(true);
+      setErrorMessage(null);
+      const res = await fetch(`${API_BASE_URL}/api/auth/signup`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        credentials: 'include',
+        body: JSON.stringify(formData),
+      });
+      const data = await res.json();
+      if (data.success === false) {
+        return setErrorMessage(data.message);
+      }
+      setLoading(false);
+      if(res.ok) {
+        navigate('/sign-in');
+      }
+    } catch (error) {
+      setErrorMessage(error.message);
+      setLoading(false);
+    }
   };
 
   return (
@@ -90,7 +123,7 @@ export default function SignUp() {
               </div>
 
               <Button
-                gradientDuoTone='purpleToPink'
+                color="purple"
                 type='submit'
                 disabled={loading}
                 className='w-full mt-4'
