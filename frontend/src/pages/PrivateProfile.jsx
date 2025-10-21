@@ -15,18 +15,25 @@ import {
 
 export default function PrivateProfile() {
 
-  const { currentUser, loading } = useSelector((state) => state.user);
+
+  const { currentUser, loading, error } = useSelector((state) => state.user);
   const [image, setImage] = useState(undefined);
-  const [localProfilePic, setLocalProfilePic] = useState(currentUser.profilePicture);
+  const [localProfilePic, setLocalProfilePic] = useState(currentUser?.profilePicture || '');
+  const [updateSuccess, setUpdateSuccess] = useState(false);
   const fileRef = useRef(null);
-  const [formData, setFormData] = useState({});
+  const [formData, setFormData] = useState({
+    username: currentUser?.username || '',
+    email: currentUser?.email || '',
+    password: '',
+    profilePicture: currentUser?.profilePicture || ''
+  });
   const dispatch = useDispatch();
 
   const handleChange = (e) => {
     setFormData({ ...formData, [e.target.id]: e.target.value });
-  }
+  };
 
-  // Profile picture ကို form data ထဲထည့်ဖို့ function အသစ်ထည့်ပါ
+  // Profile picture ကို form data ထဲထည့်ဖို့ function
   const updateFormDataWithProfilePic = (profilePic) => {
     if (profilePic) {
       setFormData(prevFormData => ({
@@ -36,7 +43,7 @@ export default function PrivateProfile() {
     }
   };
 
-   useEffect(() => {
+  useEffect(() => {
     if (image) {
       handleFileUpload(image);
     }
@@ -47,50 +54,45 @@ export default function PrivateProfile() {
     const savedProfilePic = localStorage.getItem('profilePicture');
     if (savedProfilePic) {
       setLocalProfilePic(savedProfilePic);
-
-      // Form data ထဲကိုလည်း ထည့်ပါ
-    updateFormDataWithProfilePic(savedProfilePic);
-
+      updateFormDataWithProfilePic(savedProfilePic);
     }
-  }, []);
+    
+    // Initialize form data with current user data
+    if (currentUser) {
+      setFormData({
+        username: currentUser.username || '',
+        email: currentUser.email || '',
+        password: '',
+        profilePicture: currentUser.profilePicture || savedProfilePic || ''
+      });
+    }
+  }, [currentUser]);
 
-   const handleFileUpload = async (image) => {
+  const handleFileUpload = async (image) => {
     try {
-      // ၁. File ရှိမရှိစစ်ဆေးခြင်း
       if (!image) {
         throw new Error('No file selected');
       }
 
-      // ၂. File size ကြီးလားစစ်ဆေးခြင်း (2MB ထက်မကြီးရ)
       const maxSize = 2 * 1024 * 1024;
       if (image.size > maxSize) {
         throw new Error('File size must be less than 2MB');
       }
 
-      // ၃. File type မှန်ရဲ့လားစစ်ဆေးခြင်း
       const allowedTypes = ['image/jpeg', 'image/jpg', 'image/png', 'image/gif', 'image/webp'];
       if (!allowedTypes.includes(image.type)) {
         throw new Error('Please select a valid image file (JPEG, PNG, GIF, WebP)');
       }
 
-      // ၄. File ကို Base64 string အဖြစ်ပြောင်းခြင်း
       const reader = new FileReader();
       
       reader.onload = (event) => {
         try {
           const base64String = event.target.result;
-          
-          // ၅. Local Storage မှာသိမ်းခြင်း
           localStorage.setItem('profilePicture', base64String);
-          
-          // ၆. State update လုပ်ခြင်း (UI မှာပြဖို့)
           setLocalProfilePic(base64String);
-
-          // Form data ကိုလည်း update လုပ်ပါ
           updateFormDataWithProfilePic(base64String);
-          
           console.log('Profile picture saved to local storage successfully');
-                    
         } catch (error) {
           console.error('Error processing file:', error.message);
           alert('Error saving profile picture: ' + error.message);
@@ -102,12 +104,17 @@ export default function PrivateProfile() {
         alert('Error reading file');
       };
 
-      // File ကို read လုပ်ခြင်း
       reader.readAsDataURL(image);
-
     } catch (error) {
       console.error('Error uploading file:', error.message);
       alert(error.message);
+    }
+  };
+
+  const handleImageChange = (e) => {
+    const file = e.target.files[0];
+    if (file) {
+      setImage(file);
     }
   };
 
@@ -115,8 +122,8 @@ export default function PrivateProfile() {
     e.preventDefault();
     try {
       dispatch(updateUserStart());
-      const res = await fetch(`${API_BASE_URL}/api/user/update/${currentUser._id}`, {
-        method: 'POST',
+      const res = await fetch(`/api/user/update/${currentUser._id}`, {
+        method: 'PUT',
         headers: {
           'Content-Type': 'application/json',
         },
@@ -124,59 +131,63 @@ export default function PrivateProfile() {
         body: JSON.stringify(formData),
       });
 
-    // Response headers ကြည့်ကြည့်ပါ
-    console.log('Response headers:', res.headers);
-
-
       const data = await res.json();
-      console.log(data);
+      console.log('Update response:', data);
 
       if (data.success === false) {
         dispatch(updateUserFailure(data));
         return;
       }
+      
       dispatch(updateUserSuccess(data));
+      setUpdateSuccess(true);
+      
+      // Hide success message after 3 seconds
+      setTimeout(() => {
+        setUpdateSuccess(false);
+      }, 3000);
       
     } catch (error) {
-      console.log("error",error);
+      console.log("error", error);
       dispatch(updateUserFailure(error));
     }
   };
 
-  // Local storage ကိုရှင်းတဲ့ function (လိုအပ်ရင်သုံးမယ်)
   const clearProfilePicture = () => {
     localStorage.removeItem('profilePicture');
     setLocalProfilePic(null);
+    setFormData(prev => ({ ...prev, profilePicture: '' }));
     console.log('Profile picture cleared from local storage');
   };
 
   const handleDeleteAccount = async () => {
-    try {
-      dispatch(deleteUserStart());
-      const res = await fetch(`${API_BASE_URL}/api/user/delete/${currentUser._id}`, {
-        method: 'DELETE',
-        credentials: 'include',
-      });
-      const data = await res.json();
-      if (data.success === false) {
-        dispatch(deleteUserFailure(data));
-        return;
+    if (window.confirm('Are you sure you want to delete your account? This action cannot be undone.')) {
+      try {
+        dispatch(deleteUserStart());
+        const res = await fetch(`/api/user/delete/${currentUser._id}`, {
+          method: 'DELETE',
+          credentials: 'include',
+        });
+        const data = await res.json();
+        if (data.success === false) {
+          dispatch(deleteUserFailure(data));
+          return;
+        }
+        dispatch(deleteUserSuccess(data));
+      } catch (error) {
+        dispatch(deleteUserFailure(error));
       }
-      dispatch(deleteUserSuccess(data));
-    } catch (error) {
-      dispatch(deleteUserFailure(error));
     }
   };
 
   const handleSignOut = async () => {
     try {
-      await fetch(`${API_BASE_URL}/api/auth/signout`);
+      await fetch(`/api/auth/signout`);
       dispatch(signOut());
     } catch (error) {
       console.log(error);
     }
   };
-
 
   return (
     <div className="min-h-screen bg-gray-50 dark:bg-gray-900 py-8 px-4">
@@ -188,80 +199,160 @@ export default function PrivateProfile() {
           <p className="text-gray-600 dark:text-gray-400 mt-2">Manage your account settings and preferences</p>
         </div>
 
-        <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-          
-          {/* Left Sidebar - Quick Actions */}
-          <div className="lg:col-span-1 space-y-6">
+        {/* Success and Error Messages */}
+        {updateSuccess && (
+          <Alert color="success" className="mb-6">
+            Profile updated successfully!
+          </Alert>
+        )}
+        
+        {error && (
+          <Alert color="failure" className="mb-6">
+            {error.message || 'Something went wrong!'}
+          </Alert>
+        )}
+
+        <form onSubmit={handleSubmit}>
+          <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
             
-            {/* Profile Picture Card */}
-            <Card>
-              <h3 className="text-lg font-semibold text-gray-900 dark:text-white mb-4">Profile Picture</h3>
-              <div className="flex flex-col items-center space-y-4">
-                <Avatar
-                  img="https://flowbite.com/docs/images/people/profile-picture-5.jpg"
-                  alt="Profile picture"
-                  size="xl"
-                  rounded
-                  className="border-4 border-white dark:border-gray-800 shadow-lg"
-                />
-                <div className="text-center">
-                  <p className="text-sm text-gray-600 dark:text-gray-400 mb-2">
-                    JPG, GIF or PNG. Max size 2MB
-                  </p>
-                  <FileInput 
-                    id="profile-picture"
+            {/* Left Sidebar - Quick Actions */}
+            <div className="lg:col-span-1 space-y-6">
+              
+              {/* Profile Picture Card */}
+              <Card>
+                <h3 className="text-lg font-semibold text-gray-900 dark:text-white mb-4">Profile Picture</h3>
+                <div className="flex flex-col items-center space-y-4">
+                  <Avatar
+                    img={localProfilePic || currentUser?.profilePicture || "https://flowbite.com/docs/images/people/profile-picture-5.jpg"}
+                    alt="Profile picture"
+                    size="xl"
+                    rounded
+                    className="border-4 border-white dark:border-gray-800 shadow-lg"
+                  />
+                  <div className="text-center">
+                    <p className="text-sm text-gray-600 dark:text-gray-400 mb-2">
+                      JPG, GIF or PNG. Max size 2MB
+                    </p>
+                    <FileInput 
+                      ref={fileRef}
+                      accept="image/*"
+                      onChange={handleImageChange}
+                      className="w-full"
+                     
+                    />
+                  </div>
+                  {localProfilePic && (
+                    <Button 
+                      color="gray" 
+                      size="sm" 
+                      onClick={clearProfilePicture}
+                    >
+                      Remove Photo
+                    </Button>
+                  )}
+                </div>
+              </Card>
+
+              {/* Account Actions Card */}
+              <Card>
+                <h3 className="text-lg font-semibold text-gray-900 dark:text-white mb-4">Account Actions</h3>
+                <div className="space-y-3">
+                  <Button 
+                    color="warning" 
                     className="w-full"
-                    helperText="Upload a new profile picture"
-                  />
+                    onClick={handleSignOut}
+                    disabled={loading}
+                  >
+                    Sign Out
+                  </Button>
+                  <Button 
+                    color="failure" 
+                    className="w-full"
+                    onClick={handleDeleteAccount}
+                    disabled={loading}
+                  >
+                    Delete Account
+                  </Button>
                 </div>
-              </div>
-            </Card>
+              </Card>
+            </div>
 
+            {/* Main Content Area */}
+            <div className="lg:col-span-2 space-y-6">
+              
+              {/* Personal Information Card */}
+              <Card>
+                <h3 className="text-xl font-semibold text-gray-900 dark:text-white mb-6">Personal Information</h3>
+                <div className="space-y-6">
+                  
+                  <div>
+                    <Label htmlFor="username" value="Username" />
+                    <TextInput
+                      id="username"
+                      value={formData.username}
+                      onChange={handleChange}
+                      placeholder="username"
+                      
+                    />
+                  </div>
+                  
+                  <div>
+                    <Label htmlFor="email" value="Email Address" />
+                    <TextInput
+                      id="email"
+                      type="email"
+                      value={formData.email}
+                      onChange={handleChange}
+                      placeholder="Enter your email address"
+                    />
+                  </div>
+                  
+                  <div>
+                    <Label htmlFor="password" value="New Password" />
+                    <TextInput
+                      id="password"
+                      type="password"
+                      value={formData.password}
+                      onChange={handleChange}
+                      placeholder="Enter new password"
+                     
+                    />
+                  </div>
+                  
+                  <Button 
+                    type="submit" 
+                    color="purple" 
+                    disabled={loading}
+                    className="w-full sm:w-auto"
+                  >
+                    {loading ? 'Updating...' : 'Save Changes'}
+                  </Button>
+                </div>
+              </Card>
 
+              {/* Additional Information Card (Optional) */}
+              <Card>
+                <h3 className="text-xl font-semibold text-gray-900 dark:text-white mb-6">Additional Information</h3>
+                <div className="space-y-4">
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 text-sm">
+                    <div>
+                      <span className="font-medium text-gray-500 dark:text-gray-400">Account Created:</span>
+                      <p className="text-gray-900 dark:text-white">
+                        {currentUser?.createdAt ? new Date(currentUser.createdAt).toLocaleDateString() : 'N/A'}
+                      </p>
+                    </div>
+                    <div>
+                      <span className="font-medium text-gray-500 dark:text-gray-400">Last Updated:</span>
+                      <p className="text-gray-900 dark:text-white">
+                        {currentUser?.updatedAt ? new Date(currentUser.updatedAt).toLocaleDateString() : 'N/A'}
+                      </p>
+                    </div>
+                  </div>
+                </div>
+              </Card>
+            </div>
           </div>
-
-          {/* Main Content Area */}
-          <div className="lg:col-span-2 space-y-6">
-            
-            {/* Personal Information Card */}
-            <Card>
-              <h3 className="text-xl font-semibold text-gray-900 dark:text-white mb-6">Personal Information</h3>
-              <div className="space-y-6">
-                
-                <div>
-                  <Label htmlFor="username" value="Username" />
-                  <TextInput
-                    id="username"
-                    placeholder="username"
-                    helperText="This will be your public display name"
-                  />
-                </div>
-                
-                <div>
-                  <Label htmlFor="email" value="Email Address" />
-                  <TextInput
-                    id="email"
-                    type="email"
-                    placeholder="Enter your email address"
-                  />
-                </div>
-                
-                <div>
-                  <Label htmlFor="currentPassword" value="Current Password" />
-                  <TextInput
-                    id="password"
-                    type="password"
-                    placeholder="password"
-                  />
-                </div>
-                
-                <Button color="purple">
-                  Save Changes
-                </Button>
-              </div>
-            </Card>
-          </div>
-        </div>
+        </form>
       </div>
     </div>
   );

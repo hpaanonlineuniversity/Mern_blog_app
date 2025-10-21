@@ -7,6 +7,10 @@ export const test = (req, res) => {
 };
 
 export const updateUser = async (req, res, next) => {
+
+  console.log(req.user.id);
+  console.log(req.params.userId);
+  
   if (req.user.id !== req.params.userId) {
     return next(errorHandler(403, 'You are not allowed to update this user'));
   }
@@ -17,7 +21,7 @@ export const updateUser = async (req, res, next) => {
     req.body.password = bcryptjs.hashSync(req.body.password, 10);
   }
   if (req.body.username) {
-    if (req.body.username.length < 7 || req.body.username.length > 20) {
+    if (req.body.username.length < 7 || req.body.username.length > 40) {
       return next(
         errorHandler(400, 'Username must be between 7 and 20 characters')
       );

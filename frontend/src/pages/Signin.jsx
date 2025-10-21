@@ -40,9 +40,22 @@ export default function SignIn() {
       if (data.success === false) {
         dispatch(signInFailure(data.message));
       }
-
+/*
       if (res.ok) {
         dispatch(signInSuccess(data));
+        navigate('/');
+      }
+        */
+      if (res.ok) {
+        // User data ကို clear ဖြစ်အောင် format လုပ်ပါ
+        const userData = {
+          _id: data._id,
+          username: data.username,
+          email: data.email,
+          profilePicture: data.profilePicture,
+          // လိုအပ်တဲ့ field တွေကိုပဲ ထည့်ပါ
+        };
+        dispatch(signInSuccess(userData));
         navigate('/');
       }
     } catch (error) {
