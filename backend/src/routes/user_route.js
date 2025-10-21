@@ -13,11 +13,16 @@ const router = express.Router();
 
 //all route have not been tested yet
 
-router.get('/test', test); 
-router.put('/update/:userId', verifyToken, updateUser);
-router.delete('/delete/:userId', verifyToken, deleteUser);
-router.post('/signout', signout);
-router.get('/getusers', verifyToken, getUsers);
-router.get('/:userId', getUser);
+router.get('/test', test);  //ok
+
+//do i need both put and post??
+router.put('/update/:userId', verifyToken, updateUser); //ok
+router.post('/update/:userId', verifyToken, updateUser); //ok
+
+router.delete('/delete/:userId', verifyToken, deleteUser); //ok
+router.post('/signout', signout); //ok
+
+router.get('/getusers', verifyToken, getUsers);  //  not tested yet 
+router.get('/:userId', getUser);  //ok
 
 export default router;
