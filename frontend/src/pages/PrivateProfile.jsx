@@ -11,11 +11,7 @@ import {
   signOut,
 } from '../redux/user/userSlice';
 
-
-
 export default function PrivateProfile() {
-
-
   const { currentUser, loading, error } = useSelector((state) => state.user);
   const [image, setImage] = useState(undefined);
   const [localProfilePic, setLocalProfilePic] = useState(currentUser?.profilePicture || '');
@@ -33,7 +29,6 @@ export default function PrivateProfile() {
     setFormData({ ...formData, [e.target.id]: e.target.value });
   };
 
-  // Profile picture ကို form data ထဲထည့်ဖို့ function
   const updateFormDataWithProfilePic = (profilePic) => {
     if (profilePic) {
       setFormData(prevFormData => ({
@@ -49,7 +44,6 @@ export default function PrivateProfile() {
     }
   }, [image]);
 
-  // Local storage ကနေ profile picture ကိုဖတ်တဲ့ function
   useEffect(() => {
     const savedProfilePic = localStorage.getItem('profilePicture');
     if (savedProfilePic) {
@@ -57,7 +51,6 @@ export default function PrivateProfile() {
       updateFormDataWithProfilePic(savedProfilePic);
     }
     
-    // Initialize form data with current user data
     if (currentUser) {
       setFormData({
         username: currentUser.username || '',
@@ -142,7 +135,6 @@ export default function PrivateProfile() {
       dispatch(updateUserSuccess(data));
       setUpdateSuccess(true);
       
-      // Hide success message after 3 seconds
       setTimeout(() => {
         setUpdateSuccess(false);
       }, 3000);
@@ -238,7 +230,6 @@ export default function PrivateProfile() {
                       accept="image/*"
                       onChange={handleImageChange}
                       className="w-full"
-                     
                     />
                   </div>
                   {localProfilePic && (
@@ -246,6 +237,7 @@ export default function PrivateProfile() {
                       color="gray" 
                       size="sm" 
                       onClick={clearProfilePicture}
+                      className="w-full"
                     >
                       Remove Photo
                     </Button>
@@ -256,23 +248,46 @@ export default function PrivateProfile() {
               {/* Account Actions Card */}
               <Card>
                 <h3 className="text-lg font-semibold text-gray-900 dark:text-white mb-4">Account Actions</h3>
-                <div className="space-y-3">
-                  <Button 
-                    color="warning" 
-                    className="w-full"
-                    onClick={handleSignOut}
-                    disabled={loading}
-                  >
-                    Sign Out
-                  </Button>
-                  <Button 
-                    color="failure" 
-                    className="w-full"
-                    onClick={handleDeleteAccount}
-                    disabled={loading}
-                  >
-                    Delete Account
-                  </Button>
+                <div className="space-y-4">
+                  {/* Sign Out Button */}
+                  <div className="flex items-center p-3 bg-blue-50 dark:bg-blue-900/20 rounded-lg border border-blue-200 dark:border-blue-800">
+                    <div className="flex-1">
+                      <h4 className="font-medium text-gray-900 dark:text-white text-sm">Sign Out</h4>
+                      <p className="text-xs text-gray-600 dark:text-gray-400">Secure sign out from your account</p>
+                    </div>
+                    <Button 
+                      color="light" 
+                      size="sm"
+                      onClick={handleSignOut}
+                      disabled={loading}
+                      className="border border-gray-300 dark:border-gray-600 hover:bg-gray-100 dark:hover:bg-gray-700"
+                    >
+                      <svg className="w-4 h-4 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1" />
+                      </svg>
+                      Sign Out
+                    </Button>
+                  </div>
+
+                  {/* Delete Account Button */}
+                  <div className="flex items-center p-3 bg-red-50 dark:bg-red-900/20 rounded-lg border border-red-200 dark:border-red-800">
+                    <div className="flex-1">
+                      <h4 className="font-medium text-gray-900 dark:text-white text-sm">Delete Account</h4>
+                      <p className="text-xs text-gray-600 dark:text-gray-400">Permanently delete your account</p>
+                    </div>
+                    <Button 
+                      color="failure" 
+                      size="sm"
+                      onClick={handleDeleteAccount}
+                      disabled={loading}
+                      className="hover:bg-red-700 focus:ring-2 focus:ring-red-300 dark:focus:ring-red-900"
+                    >
+                      <svg className="w-4 h-4 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+                      </svg>
+                      Delete
+                    </Button>
+                  </div>
                 </div>
               </Card>
             </div>
@@ -292,7 +307,6 @@ export default function PrivateProfile() {
                       value={formData.username}
                       onChange={handleChange}
                       placeholder="username"
-                      
                     />
                   </div>
                   
@@ -315,7 +329,6 @@ export default function PrivateProfile() {
                       value={formData.password}
                       onChange={handleChange}
                       placeholder="Enter new password"
-                     
                     />
                   </div>
                   
