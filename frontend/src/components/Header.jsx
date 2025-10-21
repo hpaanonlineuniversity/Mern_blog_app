@@ -91,9 +91,12 @@ const Header = () => {
                 </span>
               </DropdownHeader>
 
-              {/* <Link to={'/profile'}> */}  
-              <Link to={'/dashboard?tab=profile'}>
+              <Link to={'/profile'}>
                 <DropdownItem>Profile</DropdownItem>
+              </Link>
+
+              <Link to={'/dashboard?tab=profile'}>
+                <DropdownItem>Dashboard</DropdownItem>
               </Link>
 
               <DropdownDivider />
