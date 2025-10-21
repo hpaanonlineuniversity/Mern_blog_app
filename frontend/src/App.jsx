@@ -6,6 +6,7 @@ import Signup from './pages/Signup';
 import Dashboard from './pages/Dashboard';
 import Projects from './pages/Projects';
 import Header from './components/Header';
+import Callback from './pages/Callback';
 
 const App = () => {
   return (
@@ -19,6 +20,7 @@ const App = () => {
           <Route path='/sign-up' element={<Signup />} />
           <Route path='/dashboard' element={<Dashboard />} />
           <Route path='/projects' element={<Projects />} />
+          <Route path='/auth/callback' element={<Callback/>} />
         </Routes>
       </BrowserRouter>
     </div>
