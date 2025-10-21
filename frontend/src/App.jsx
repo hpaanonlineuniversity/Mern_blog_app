@@ -6,6 +6,7 @@ import Signup from './pages/Signup';
 import Dashboard from './pages/Dashboard';
 import Projects from './pages/Projects';
 import Header from './components/Header';
+import FooterComponent from './components/FooterComponent';
 import Callback from './pages/Callback';
 
 const App = () => {
@@ -22,6 +23,7 @@ const App = () => {
           <Route path='/projects' element={<Projects />} />
           <Route path='/auth/callback' element={<Callback/>} />
         </Routes>
+        <FooterComponent/>
       </BrowserRouter>
     </div>
   )
