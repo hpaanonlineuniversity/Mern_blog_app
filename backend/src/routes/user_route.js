@@ -20,7 +20,7 @@ router.put('/update/:userId', verifyToken, updateUser); //ok
 router.post('/update/:userId', verifyToken, updateUser); //ok
 
 router.delete('/delete/:userId', verifyToken, deleteUser); //ok
-router.post('/signout', signout); //ok
+router.get('/signout', signout); //ok
 
 router.get('/getusers', verifyToken, getUsers);  //  not tested yet 
 router.get('/:userId', getUser);  //ok

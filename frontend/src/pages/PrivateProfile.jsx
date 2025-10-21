@@ -174,7 +174,7 @@ export default function PrivateProfile() {
 
   const handleSignOut = async () => {
     try {
-      await fetch(`/api/auth/signout`);
+      await fetch(`/api/user/signout`);
       dispatch(signOut());
     } catch (error) {
       console.log(error);

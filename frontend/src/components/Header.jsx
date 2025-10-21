@@ -1,11 +1,28 @@
 import { Avatar, Button, Dropdown, Navbar, TextInput } from 'flowbite-react';
+import { DropdownDivider, DropdownHeader, DropdownItem } from "flowbite-react";
 import { NavbarBrand, NavbarCollapse, NavbarLink, NavbarToggle } from "flowbite-react";
 import { Link, useLocation, useNavigate } from 'react-router';
+import { useSelector, useDispatch } from 'react-redux';
 import { AiOutlineSearch } from 'react-icons/ai';
 import { FaMoon, FaSun } from 'react-icons/fa';
+import { signOut } from '../redux/user/userSlice';
 
 const Header = () => {
+  const { currentUser } = useSelector((state) => state.user);
+  const navigate = useNavigate();
+  const dispatch = useDispatch();
+
   const file = useLocation().pathname;
+
+   const handleSignOut = async () => {
+      try {
+        await fetch(`/api/user/signout`);
+        dispatch(signOut());
+      } catch (error) {
+        console.log(error);
+      }
+    };
+
   return (
     <>
       <Navbar className='border-b-2'>
@@ -59,12 +76,37 @@ const Header = () => {
             <FaMoon />
           </Button>
 
-          <Link to='/sign-in'>
-            <Button color="purple" outline>
-              Sign In
-            </Button>
-          </Link>
-          
+          {currentUser ? (
+            <Dropdown
+              arrowIcon={false}
+              inline
+              label={
+                <Avatar alt='user' img={currentUser.profilePicture} rounded />
+              }
+            >
+              <DropdownHeader>
+                <span className='block text-sm'>@{currentUser.username}</span>
+                <span className='block text-sm font-medium truncate'>
+                  {currentUser.email}
+                </span>
+              </DropdownHeader>
+
+              {/* <Link to={'/profile'}> */}  
+              <Link to={'/dashboard?tab=profile'}>
+                <DropdownItem>Profile</DropdownItem>
+              </Link>
+
+              <DropdownDivider />
+              <DropdownItem onClick={handleSignOut}>Sign out</DropdownItem>
+            </Dropdown>
+
+          ) : (
+            <Link to='/sign-in'>
+              <Button color='purple' outline>
+                Sign In
+              </Button>
+            </Link>
+            )}          
         </div>
 
 
