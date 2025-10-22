@@ -28,24 +28,9 @@ export default function CreatePost() {
   const [formData, setFormData] = useState({
     title: '',
     category: 'uncategorized',
-    slug: '',
     content: '',
     image: ''
   });
-
-
-  // Auto-slug generation ထည့်ရန်
-  useEffect(() => {
-    if (formData.title) {
-      const generatedSlug = formData.title
-        .toLowerCase()
-        .replace(/[^a-zA-Z0-9]/g, '-')
-        .replace(/-+/g, '-')
-        .replace(/^-|-$/g, '');
-      
-      setFormData(prev => ({ ...prev, slug: generatedSlug }));
-    }
-  }, [formData.title]);
 
   const handleChange = (e) => {
     setFormData({ ...formData, [e.target.id]: e.target.value });
@@ -230,30 +215,6 @@ export default function CreatePost() {
                   <option value="technology">Technology</option>
                 </Select>
               </div>
-            </div>
-
-            {/* Slug Field */}
-            <div>
-              <div className="mb-2">
-                <Label 
-                  htmlFor="slug" 
-                  value="URL Slug" 
-                  className="text-lg font-medium text-gray-700 dark:text-white" 
-                />
-                <span className="text-sm text-gray-500 dark:text-gray-400 ml-2">
-                  (Unique identifier for your post URL)
-                </span>
-              </div>
-              <TextInput
-                id="slug"
-                type="text"
-                placeholder="my-awesome-post"
-                required
-                sizing="lg"
-                value={formData.slug}
-                onChange={handleChange}
-                className="text-gray-900 dark:text-white placeholder-gray-500 dark:placeholder-gray-400"
-              />
             </div>
 
             {/* Content */}
