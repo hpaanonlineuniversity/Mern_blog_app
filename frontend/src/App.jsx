@@ -10,6 +10,7 @@ import PrivateProfile from './pages/PrivateProfile';
 import FooterComponent from './components/FooterComponent';
 import Callback from './pages/Callback';
 import PrivateRoute from './components/PrivateRoute';
+import CreatePost from './pages/CreatePost';
 
 
 const App = () => {
@@ -29,6 +30,10 @@ const App = () => {
             <Route path='/profile' element={<PrivateProfile />} />
             <Route path='/dashboard' element={<Dashboard />} />
             <Route path='/projects' element={<Projects />} />
+
+            <Route path='/create-post' element={<CreatePost />} />
+            
+
           </Route>
 
         </Routes>

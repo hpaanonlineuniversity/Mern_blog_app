@@ -10,6 +10,7 @@ import {
   deleteUserFailure,
   signOut,
 } from '../redux/user/userSlice';
+import { Link } from 'react-router';
 
 export default function DashProfile() {
   const { currentUser, loading, error } = useSelector((state) => state.user);
@@ -384,6 +385,18 @@ export default function DashProfile() {
                       </svg>
                       {loading ? 'Saving Changes...' : 'Save Changes'}
                     </Button>
+
+                    {currentUser.isAdmin && (
+                      <Link to={'/create-post'} >
+                        <Button
+                          type='button'
+                          color='purple'
+                          className='w-full'
+                        >
+                          Create a post
+                        </Button>
+                      </Link>
+                    )}
 
                     <Button 
                       color="light" 
