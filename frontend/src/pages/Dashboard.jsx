@@ -25,8 +25,10 @@ export default function Dashboard() {
         <DashSidebar />
       </div>
 
-      {/* profile... */}
-      {tab === 'profile' && <DashProfile />}
+      {/* Main Content - Takes remaining space */}
+      <div className='flex-1'>
+        {tab === 'profile' && <DashProfile />}
+      </div>
 
     </div>
   );

@@ -182,170 +182,236 @@ export default function DashProfile() {
   };
 
   return (
-    <div className="min-h-screen bg-gray-50 dark:bg-gray-900 py-8 px-4">
-      <div className="max-w-4xl mx-auto">
+    <div className="min-h-screen bg-gradient-to-br from-gray-50 to-gray-100 dark:from-gray-900 dark:to-gray-800 py-8 px-4">
+      <div className="max-w-6xl mx-auto">
         
-        {/* Page Header */}
-        <div className="mb-8">
-          <h1 className="text-3xl font-bold text-gray-900 dark:text-white">Profile Settings</h1>
-          <p className="text-gray-600 dark:text-gray-400 mt-2">Manage your account settings and preferences</p>
+        {/* Header Section */}
+        <div className="text-center mb-8">
+          <h1 className="text-3xl font-bold text-gray-900 dark:text-white mb-2">Profile Settings</h1>
+          <p className="text-gray-600 dark:text-gray-400">
+            Manage your personal information and account preferences
+          </p>
         </div>
 
-        {/* Success and Error Messages */}
-        {updateSuccess && (
-          <Alert color="success" className="mb-6">
-            Profile updated successfully!
-          </Alert>
-        )}
-        
-        {error && (
-          <Alert color="failure" className="mb-6">
-            {error.message || 'Something went wrong!'}
-          </Alert>
-        )}
+        {/* Status Alerts */}
+        <div className="mb-6">
+          {updateSuccess && (
+            <Alert color="success" className="mb-4">
+              <span className="font-medium">Success!</span> Your profile has been updated successfully.
+            </Alert>
+          )}
+          
+          {error && (
+            <Alert color="failure" className="mb-4">
+              <span className="font-medium">Error!</span> {error.message || 'Something went wrong. Please try again.'}
+            </Alert>
+          )}
+        </div>
 
         <form onSubmit={handleSubmit}>
-          <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-            
-            {/* Left Sidebar - Quick Actions */}
-            <div className="lg:col-span-1 space-y-6">
+          <Card className="border-0 shadow-xl dark:shadow-gray-800/30 bg-white dark:bg-gray-800">
+            <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
               
-              {/* Profile Picture Card */}
-              <Card>
-                <h3 className="text-lg font-semibold text-gray-900 dark:text-white mb-4">Profile Picture</h3>
-                <div className="flex flex-col items-center space-y-4">
-                  <Avatar
-                    img={localProfilePic || currentUser?.profilePicture || "https://flowbite.com/docs/images/people/profile-picture-5.jpg"}
-                    alt="Profile picture"
-                    size="xl"
-                    rounded
-                    className="border-4 border-white dark:border-gray-800 shadow-lg"
-                  />
-                  <div className="text-center">
-                    <p className="text-sm text-gray-600 dark:text-gray-400 mb-2">
-                      JPG, GIF or PNG. Max size 2MB
-                    </p>
+              {/* Left Column - Profile Picture */}
+              <div className="lg:col-span-1">
+                <div className="text-center lg:text-left">
+                  <h3 className="text-xl font-semibold text-gray-900 dark:text-white mb-6">Profile Picture</h3>
+                  
+                  <div className="relative inline-block mb-6">
+                    <Avatar
+                      img={localProfilePic || currentUser?.profilePicture || "https://flowbite.com/docs/images/people/profile-picture-5.jpg"}
+                      alt="Profile picture"
+                      size="xxl"
+                      rounded
+                      className="border-4 border-white dark:border-gray-700 shadow-lg mx-auto lg:mx-0"
+                    />
+                    <div className="absolute -bottom-2 -right-2">
+                      <Button 
+                        size="xs" 
+                        color="light"
+                        onClick={() => fileRef.current?.click()}
+                        className="rounded-full shadow-lg border border-gray-200 dark:border-gray-600"
+                      >
+                        <svg className="w-4 h-4 text-gray-600 dark:text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 9a2 2 0 012-2h.93a2 2 0 001.664-.89l.812-1.22A2 2 0 0110.07 4h3.86a2 2 0 011.664.89l.812 1.22A2 2 0 0018.07 7H19a2 2 0 012 2v9a2 2 0 01-2 2H5a2 2 0 01-2-2V9z" />
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 13a3 3 0 11-6 0 3 3 0 016 0z" />
+                        </svg>
+                      </Button>
+                    </div>
+                  </div>
+
+                  <div className="space-y-4">
                     <FileInput 
                       ref={fileRef}
                       accept="image/*"
                       onChange={handleImageChange}
-                      className="w-full"
+                      className="hidden"
                     />
-                  </div>
-                  {localProfilePic && (
-                    <Button 
-                      color="gray" 
-                      size="sm" 
-                      onClick={clearProfilePicture}
-                      className="w-full"
-                    >
-                      Remove Photo
-                    </Button>
-                  )}
-                </div>
-              </Card>
-
-              {/* Account Actions Card */}
-              <Card>
-                <h3 className="text-lg font-semibold text-gray-900 dark:text-white mb-4">Account Actions</h3>
-                <div className="space-y-4">
-
-                  {/* Delete Account Button */}
-                  <div className="flex items-center p-3 bg-red-50 dark:bg-red-900/20 rounded-lg border border-red-200 dark:border-red-800">
-                    <div className="flex-1">
-                      <h4 className="font-medium text-gray-900 dark:text-white text-sm">Delete Account</h4>
-                      <p className="text-xs text-gray-600 dark:text-gray-400">Permanently delete your account</p>
+                    
+                    <div className="text-sm text-gray-500 dark:text-gray-400 space-y-1">
+                      <p>Supported formats: JPG, PNG, GIF, WebP</p>
+                      <p>Maximum file size: 2MB</p>
                     </div>
+
+                    {localProfilePic && (
+                      <Button 
+                        color="light" 
+                        size="sm" 
+                        onClick={clearProfilePicture}
+                        className="w-full border border-gray-200 dark:border-gray-600 text-red-600 hover:text-red-700 dark:text-red-400 dark:hover:text-red-300"
+                      >
+                        Remove Current Photo
+                      </Button>
+                    )}
+                  </div>
+                </div>
+              </div>
+
+              {/* Middle Column - Personal Information */}
+              <div className="lg:col-span-2">
+                <div className="space-y-8">
+                  
+                  {/* Personal Information Section */}
+                  <div>
+                    <h3 className="text-xl font-semibold text-gray-900 dark:text-white mb-6 pb-2 border-b border-gray-200 dark:border-gray-700">
+                      Personal Information
+                    </h3>
+                    
+                    <div className="space-y-6">
+                      <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                        <div>
+                          <Label htmlFor="username" value="Username" className="mb-2 block font-medium text-gray-700 dark:text-gray-300" />
+                          <TextInput
+                            id="username"
+                            value={formData.username}
+                            onChange={handleChange}
+                            placeholder="Enter your username"
+                            className="w-full"
+                          />
+                        </div>
+                        
+                        <div>
+                          <Label htmlFor="email" value="Email Address" className="mb-2 block font-medium text-gray-700 dark:text-gray-300" />
+                          <TextInput
+                            id="email"
+                            type="email"
+                            value={formData.email}
+                            onChange={handleChange}
+                            placeholder="Enter your email address"
+                            className="w-full"
+                          />
+                        </div>
+                      </div>
+                      
+                      <div>
+                        <Label htmlFor="password" value="New Password" className="mb-2 block font-medium text-gray-700 dark:text-gray-300" />
+                        <TextInput
+                          id="password"
+                          type="password"
+                          value={formData.password}
+                          onChange={handleChange}
+                          placeholder="Enter new password"
+                          className="w-full"
+                        />
+                        <p className="text-sm text-gray-500 dark:text-gray-400 mt-2">
+                          Leave blank to keep your current password
+                        </p>
+                      </div>
+                    </div>
+                  </div>
+
+                  {/* Account Information & Security Section */}
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                    
+                    {/* Account Information */}
+                    <div>
+                      <h4 className="text-lg font-semibold text-gray-900 dark:text-white mb-4">Account Information</h4>
+                      <div className="space-y-3">
+                        <div className="flex justify-between items-center py-2 border-b border-gray-200 dark:border-gray-700">
+                          <span className="text-sm text-gray-600 dark:text-gray-400">Member Since</span>
+                          <span className="text-sm font-medium text-gray-900 dark:text-white">
+                            {currentUser?.createdAt ? new Date(currentUser.createdAt).toLocaleDateString() : 'N/A'}
+                          </span>
+                        </div>
+                        
+                        <div className="flex justify-between items-center py-2 border-b border-gray-200 dark:border-gray-700">
+                          <span className="text-sm text-gray-600 dark:text-gray-400">Last Updated</span>
+                          <span className="text-sm font-medium text-gray-900 dark:text-white">
+                            {currentUser?.updatedAt ? new Date(currentUser.updatedAt).toLocaleDateString() : 'N/A'}
+                          </span>
+                        </div>
+                        
+                        <div className="flex justify-between items-center py-2">
+                          <span className="text-sm text-gray-600 dark:text-gray-400">Status</span>
+                          <span className="px-3 py-1 bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-300 text-xs font-medium rounded-full">
+                            Active
+                          </span>
+                        </div>
+                      </div>
+                    </div>
+
+                    {/* Security Information */}
+                    <div>
+                      <h4 className="text-lg font-semibold text-gray-900 dark:text-white mb-4">Security</h4>
+                      <div className="space-y-4">
+                        <div className="p-4 bg-blue-50 dark:bg-blue-900/20 rounded-lg border border-blue-200 dark:border-blue-800">
+                          <h5 className="font-semibold text-blue-800 dark:text-blue-300 text-sm mb-1">Password Status</h5>
+                          <p className="text-xs text-blue-600 dark:text-blue-400">
+                            {formData.password ? 'New password will be updated' : 'Current password is active'}
+                          </p>
+                        </div>
+                        
+                        <div className="p-4 bg-gray-50 dark:bg-gray-700/50 rounded-lg border border-gray-200 dark:border-gray-600">
+                          <h5 className="font-semibold text-gray-800 dark:text-gray-300 text-sm mb-1">Session</h5>
+                          <p className="text-xs text-gray-600 dark:text-gray-400">
+                            You are currently signed in on this device
+                          </p>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+
+                  {/* Action Buttons */}
+                  <div className="flex flex-col sm:flex-row gap-4 pt-6 border-t border-gray-200 dark:border-gray-700">
+                    <Button 
+                      color="purple" 
+                      className="flex-1 justify-center"
+                      type="submit"
+                      disabled={loading}
+                    >
+                      <svg className="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
+                      </svg>
+                      {loading ? 'Saving Changes...' : 'Save Changes'}
+                    </Button>
+
+                    <Button 
+                      color="light" 
+                      className="flex-1 justify-center text-gray-700 dark:text-gray-300 border border-gray-200 dark:border-gray-600"
+                      onClick={handleSignOut}
+                    >
+                      <svg className="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1" />
+                      </svg>
+                      Sign Out
+                    </Button>
+
                     <Button 
                       color="failure" 
-                      size="sm"
+                      className="flex-1 justify-center"
                       onClick={handleDeleteAccount}
                       disabled={loading}
-                      className="hover:bg-red-700 focus:ring-2 focus:ring-red-300 dark:focus:ring-red-900"
                     >
-                      <svg className="w-4 h-4 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <svg className="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
                       </svg>
-                      Delete
+                      Delete Account
                     </Button>
                   </div>
                 </div>
-              </Card>
+              </div>
             </div>
-
-            {/* Main Content Area */}
-            <div className="lg:col-span-2 space-y-6">
-              
-              {/* Personal Information Card */}
-              <Card>
-                <h3 className="text-xl font-semibold text-gray-900 dark:text-white mb-6">Personal Information</h3>
-                <div className="space-y-6">
-                  
-                  <div>
-                    <Label htmlFor="username" value="Username" />
-                    <TextInput
-                      id="username"
-                      value={formData.username}
-                      onChange={handleChange}
-                      placeholder="username"
-                    />
-                  </div>
-                  
-                  <div>
-                    <Label htmlFor="email" value="Email Address" />
-                    <TextInput
-                      id="email"
-                      type="email"
-                      value={formData.email}
-                      onChange={handleChange}
-                      placeholder="Enter your email address"
-                    />
-                  </div>
-                  
-                  <div>
-                    <Label htmlFor="password" value="New Password" />
-                    <TextInput
-                      id="password"
-                      type="password"
-                      value={formData.password}
-                      onChange={handleChange}
-                      placeholder="Enter new password"
-                    />
-                  </div>
-                  
-                  <Button 
-                    type="submit" 
-                    color="purple" 
-                    disabled={loading}
-                    className="w-full sm:w-auto"
-                  >
-                    {loading ? 'Updating...' : 'Save Changes'}
-                  </Button>
-                </div>
-              </Card>
-
-              {/* Additional Information Card (Optional) */}
-              <Card>
-                <h3 className="text-xl font-semibold text-gray-900 dark:text-white mb-6">Additional Information</h3>
-                <div className="space-y-4">
-                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 text-sm">
-                    <div>
-                      <span className="font-medium text-gray-500 dark:text-gray-400">Account Created:</span>
-                      <p className="text-gray-900 dark:text-white">
-                        {currentUser?.createdAt ? new Date(currentUser.createdAt).toLocaleDateString() : 'N/A'}
-                      </p>
-                    </div>
-                    <div>
-                      <span className="font-medium text-gray-500 dark:text-gray-400">Last Updated:</span>
-                      <p className="text-gray-900 dark:text-white">
-                        {currentUser?.updatedAt ? new Date(currentUser.updatedAt).toLocaleDateString() : 'N/A'}
-                      </p>
-                    </div>
-                  </div>
-                </div>
-              </Card>
-            </div>
-          </div>
+          </Card>
         </form>
       </div>
     </div>
