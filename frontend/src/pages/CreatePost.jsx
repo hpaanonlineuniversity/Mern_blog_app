@@ -9,32 +9,123 @@ import {
   Label,
   Spinner
 } from 'flowbite-react';
-import { useState } from 'react';
+import { useState, useRef, useEffect } from 'react';
+import { useDispatch, useSelector } from 'react-redux';
+import {
+  updateUserStart,
+  updateUserSuccess,
+  updateUserFailure,
+  deleteUserStart,
+  deleteUserSuccess,
+  deleteUserFailure,
+  signOut,
+} from '../redux/user/userSlice';
 
 export default function CreatePost() {
   const [imagePreview, setImagePreview] = useState(null);
   const [isUploading, setIsUploading] = useState(false);
+  const [image, setImage] = useState(undefined);
+  const [localPostImage, setLocalPostImage] = useState('');
+  const fileRef = useRef(null);
+  const dispatch = useDispatch();
+
+  // Initialize formData state
+  const [formData, setFormData] = useState({
+    title: '',
+    category: 'uncategorized',
+    slug: '',
+    content: '',
+    image: ''
+  });
+
+  const handleChange = (e) => {
+    setFormData({ ...formData, [e.target.id]: e.target.value });
+  };
 
   const handleImageChange = (e) => {
     const file = e.target.files[0];
     if (file) {
-      const reader = new FileReader();
-      reader.onloadend = () => {
-        setImagePreview(reader.result);
-      };
-      reader.readAsDataURL(file);
+      setImage(file);
     }
   };
 
-  const handleSubmit = (e) => {
-    e.preventDefault();
-    // Submit logic will be handled by parent component
+  useEffect(() => {
+    if (image) {
+      handleFileUpload(image);
+    }
+  }, [image]);
+
+  useEffect(() => {
+    const savedPostImage = localStorage.getItem('postImage');
+    if (savedPostImage) {
+      setLocalPostImage(savedPostImage);
+      setImagePreview(savedPostImage);
+      setFormData(prev => ({ ...prev, image: savedPostImage }));
+    }
+  }, []);
+
+  const handleFileUpload = async (image) => {
+    try {
+      if (!image) {
+        throw new Error('No file selected');
+      }
+
+      const maxSize = 5 * 1024 * 1024; // 5MB for posts
+      if (image.size > maxSize) {
+        throw new Error('File size must be less than 5MB');
+      }
+
+      const allowedTypes = ['image/jpeg', 'image/jpg', 'image/png', 'image/gif', 'image/webp'];
+      if (!allowedTypes.includes(image.type)) {
+        throw new Error('Please select a valid image file (JPEG, PNG, GIF, WebP)');
+      }
+
+      const reader = new FileReader();
+      
+      reader.onload = (event) => {
+        try {
+          const base64String = event.target.result;
+          localStorage.setItem('postImage', base64String);
+          setLocalPostImage(base64String);
+          setImagePreview(base64String);
+          setFormData(prev => ({ ...prev, image: base64String }));
+          console.log('Post image saved to local storage successfully');
+        } catch (error) {
+          console.error('Error processing file:', error.message);
+          alert('Error saving post image: ' + error.message);
+        }
+      };
+
+      reader.onerror = (error) => {
+        console.error('File reading error:', error);
+        alert('Error reading file');
+      };
+
+      reader.readAsDataURL(image);
+    } catch (error) {
+      console.error('Error uploading file:', error.message);
+      alert(error.message);
+    }
+  };
+
+  const clearPostImage = () => {
+    localStorage.removeItem('postImage');
+    setLocalPostImage(null);
+    setImagePreview(null);
+    setFormData(prev => ({ ...prev, image: '' }));
+    console.log('Post image cleared from local storage');
   };
 
   const handleImageUpload = () => {
     // Image upload logic will be handled by parent component
     setIsUploading(true);
     setTimeout(() => setIsUploading(false), 1000); // Simulate upload
+  };
+
+  const handleSubmit = (e) => {
+    e.preventDefault();
+    // Submit logic will be handled by parent component
+    console.log('Form Data:', formData);
   };
 
   return (
@@ -67,6 +158,8 @@ export default function CreatePost() {
                   placeholder="Enter a compelling title..."
                   required
                   sizing="lg"
+                  value={formData.title}
+                  onChange={handleChange}
                   className="text-gray-900 dark:text-white placeholder-gray-500 dark:placeholder-gray-400"
                 />
               </div>
@@ -83,6 +176,8 @@ export default function CreatePost() {
                   id="category"
                   required
                   sizing="lg"
+                  value={formData.category}
+                  onChange={handleChange}
                   className="text-gray-900 dark:text-white"
                 >
                   <option value="uncategorized">Select a category</option>
@@ -114,6 +209,8 @@ export default function CreatePost() {
                 placeholder="my-awesome-post"
                 required
                 sizing="lg"
+                value={formData.slug}
+                onChange={handleChange}
                 className="text-gray-900 dark:text-white placeholder-gray-500 dark:placeholder-gray-400"
               />
             </div>
@@ -132,6 +229,8 @@ export default function CreatePost() {
                 placeholder="Write your post content here... You can use markdown formatting."
                 required
                 rows={12}
+                value={formData.content}
+                onChange={handleChange}
                 className="resize-y text-gray-900 dark:text-white placeholder-gray-500 dark:placeholder-gray-400"
               />
             </div>
@@ -161,7 +260,7 @@ export default function CreatePost() {
                         />
                         <button
                           type="button"
-                          onClick={() => setImagePreview(null)}
+                          onClick={clearPostImage}
                           className="absolute top-2 right-2 bg-red-500 dark:bg-red-600 text-white p-2 rounded-full hover:bg-red-600 dark:hover:bg-red-700 w-8 h-8 flex items-center justify-center text-sm transition-all duration-200 shadow-lg hover:scale-110"
                         >
                           ×
@@ -188,6 +287,7 @@ export default function CreatePost() {
                           <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12" />
                         </svg>
                         <FileInput
+                          ref={fileRef}
                           id="image"
                           accept="image/*"
                           onChange={handleImageChange}
@@ -227,7 +327,6 @@ export default function CreatePost() {
 
             {/* Action Buttons */}
             <div className="flex flex-col sm:flex-row gap-4 justify-end pt-4 border-t border-gray-200 dark:border-gray-700">
-
               <Button
                 type="submit"
                 color="purple"
