@@ -11,23 +11,18 @@ import {
 } from 'flowbite-react';
 import { useState, useRef, useEffect } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
-import {
-  updateUserStart,
-  updateUserSuccess,
-  updateUserFailure,
-  deleteUserStart,
-  deleteUserSuccess,
-  deleteUserFailure,
-  signOut,
-} from '../redux/user/userSlice';
+import { useNavigate } from 'react-router';
 
 export default function CreatePost() {
+  const navigate = useNavigate(); 
+  const [loading, setLoading] = useState(false);
   const [imagePreview, setImagePreview] = useState(null);
   const [isUploading, setIsUploading] = useState(false);
   const [image, setImage] = useState(undefined);
   const [localPostImage, setLocalPostImage] = useState('');
   const fileRef = useRef(null);
   const dispatch = useDispatch();
+  const [publishError, setPublishError] = useState(null);
 
   // Initialize formData state
   const [formData, setFormData] = useState({
@@ -37,6 +32,20 @@ export default function CreatePost() {
     content: '',
     image: ''
   });
+
+
+  // Auto-slug generation ထည့်ရန်
+  useEffect(() => {
+    if (formData.title) {
+      const generatedSlug = formData.title
+        .toLowerCase()
+        .replace(/[^a-zA-Z0-9]/g, '-')
+        .replace(/-+/g, '-')
+        .replace(/^-|-$/g, '');
+      
+      setFormData(prev => ({ ...prev, slug: generatedSlug }));
+    }
+  }, [formData.title]);
 
   const handleChange = (e) => {
     setFormData({ ...formData, [e.target.id]: e.target.value });
@@ -122,10 +131,42 @@ export default function CreatePost() {
     setTimeout(() => setIsUploading(false), 1000); // Simulate upload
   };
 
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
-    // Submit logic will be handled by parent component
+    setLoading(true); 
+
     console.log('Form Data:', formData);
+    
+    try {
+      const res = await fetch('/api/post/create/', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        credentials: 'include',
+        body: JSON.stringify(formData),
+      });
+
+      const data = await res.json();
+      console.log('Update response:', data);
+
+      if (!res.ok) {
+        setPublishError(data.message);
+        return;
+      }
+
+      if (res.ok) {
+        setPublishError(null);
+        // localStorage ကပုံကိုဖျက်ရန်
+        localStorage.removeItem('postImage');
+        navigate(`/post/${data.slug}`);
+      }
+    } catch (error) {
+      setPublishError('Something went wrong');
+    }
+    finally {
+      setLoading(false); // loading ပြီးမယ်
+    }
   };
 
   return (
@@ -327,17 +368,37 @@ export default function CreatePost() {
 
             {/* Action Buttons */}
             <div className="flex flex-col sm:flex-row gap-4 justify-end pt-4 border-t border-gray-200 dark:border-gray-700">
+              
+              {publishError && (
+                  <Alert color="failure" className="mb-4">
+                    {publishError}
+                  </Alert>
+              )}
+
               <Button
                 type="submit"
                 color="purple"
+                disabled={loading}
                 className="sm:w-auto w-full"
                 size="lg"
               >
-                <svg className="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
-                </svg>
-                Publish Post
+                {loading ? (
+                  <>
+                    <Spinner size="sm" className="mr-2" />
+                    Publishing...
+                  </>
+                ) : (
+                  <>
+                    <svg className="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
+                    </svg>
+                    Publish Post
+                  </>
+                )}
               </Button>
+
+
+
             </div>
           </form>
         </Card>
