@@ -6,9 +6,11 @@ import { useSelector, useDispatch } from 'react-redux';
 import { AiOutlineSearch } from 'react-icons/ai';
 import { FaMoon, FaSun } from 'react-icons/fa';
 import { signOut } from '../redux/user/userSlice';
+import { toggleTheme } from '../redux/theme/themeSlice';
 
 const Header = () => {
   const { currentUser } = useSelector((state) => state.user);
+  const { theme } = useSelector((state) => state.theme);
   const navigate = useNavigate();
   const dispatch = useDispatch();
 
@@ -68,6 +70,16 @@ const Header = () => {
 
 
         <div className='flex gap-2 md:order-2'>
+
+          <Button
+            className='w-12 h-10 hidden sm:inline'
+            color='gray'
+            pill
+            onClick={() => dispatch(toggleTheme())}
+          >
+            {theme === 'light' ? <FaSun /> : <FaMoon />}
+          </Button>
+
             {currentUser ? (
             <Dropdown
               arrowIcon={false}
