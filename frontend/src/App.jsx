@@ -9,6 +9,7 @@ import Header from './components/Header';
 import PrivateProfile from './pages/PrivateProfile';
 import FooterComponent from './components/FooterComponent';
 import Callback from './pages/Callback';
+import PrivateRoute from './components/PrivateRoute';
 
 
 const App = () => {
@@ -17,14 +18,19 @@ const App = () => {
       <BrowserRouter>
         <Header/>
         <Routes>
-          <Route path='/' element={<Home/>} />
-          <Route path='/about' element={<About />} />
-          <Route path='/profile' element={<PrivateProfile />} />
+
           <Route path='/sign-in' element={<Signin />} />
           <Route path='/sign-up' element={<Signup />} />
-          <Route path='/dashboard' element={<Dashboard />} />
-          <Route path='/projects' element={<Projects />} />
           <Route path='/auth/callback' element={<Callback/>} />
+
+          <Route  element={<PrivateRoute/>} >
+            <Route path='/' element={<Home/>} />
+            <Route path='/about' element={<About />} />
+            <Route path='/profile' element={<PrivateProfile />} />
+            <Route path='/dashboard' element={<Dashboard />} />
+            <Route path='/projects' element={<Projects />} />
+          </Route>
+
         </Routes>
         <FooterComponent/>
       </BrowserRouter>
