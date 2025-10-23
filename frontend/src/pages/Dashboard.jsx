@@ -2,6 +2,7 @@ import { useEffect, useState } from 'react';
 import { useLocation } from 'react-router';
 import DashSidebar from '../components/DashSidebar';
 import DashProfile from '../components/DashProfile';
+import DashPosts from '../components/DashPosts';
 
 
 export default function Dashboard() {
@@ -27,9 +28,11 @@ export default function Dashboard() {
 
       {/* Main Content - Takes remaining space */}
       <div className='flex-1'>
+        {/* profile... */}
         {tab === 'profile' && <DashProfile />}
+        {/* posts... */}
+        {tab === 'posts' && <DashPosts />}
       </div>
-
     </div>
   );
 }

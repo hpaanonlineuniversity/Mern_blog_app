@@ -35,6 +35,18 @@ export default function DashSidebar() {
       <SidebarItems>
         <SidebarItemGroup className='flex flex-col gap-1'>
 
+          {currentUser && currentUser.isAdmin && (
+            <Link to='/dashboard?tab=dash'>
+              <SidebarItem
+                active={tab === 'dash' || !tab}
+                icon={HiChartPie}
+                as='div'
+              >
+                Dashboard
+              </SidebarItem>
+            </Link>
+          )}
+
           <Link to='/dashboard?tab=profile'>
             <SidebarItem
               active={tab === 'profile'}
@@ -46,6 +58,42 @@ export default function DashSidebar() {
               Profile
             </SidebarItem>
           </Link>
+
+          {currentUser.isAdmin && (
+            <Link to='/dashboard?tab=posts'>
+              <SidebarItem
+                active={tab === 'posts'}
+                icon={HiDocumentText}
+                as='div'
+              >
+                Posts
+              </SidebarItem>
+            </Link>
+          )}
+
+          {currentUser.isAdmin && (
+            <>
+              <Link to='/dashboard?tab=users'>
+                <SidebarItem
+                  active={tab === 'users'}
+                  icon={HiOutlineUserGroup}
+                  as='div'
+                >
+                  Users
+                </SidebarItem>
+              </Link>
+              <Link to='/dashboard?tab=comments'>
+                <SidebarItem
+                  active={tab === 'comments'}
+                  icon={HiAnnotation}
+                  as='div'
+                >
+                  Comments
+                </SidebarItem>
+              </Link>
+            </>
+          )}
+
 
           <SidebarItem
             icon={HiArrowSmRight}
