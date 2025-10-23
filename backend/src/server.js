@@ -3,6 +3,7 @@ import connectDB from './configs/db.js';
 import userRoutes from './routes/user_route.js';
 import authRoutes from './routes/auth_route.js';
 import postRoutes from './routes/post_route.js';
+import commentRoutes from './routes/comment_route.js';
 import cors from 'cors';
 import cookieParser from 'cookie-parser';
 
@@ -65,6 +66,7 @@ connectDB().then(() => {
 app.use('/api/user', userRoutes);
 app.use('/api/auth', authRoutes);
 app.use('/api/post', postRoutes);
+app.use('/api/comment', commentRoutes);
 
 
 app.use((err, req, res, next) => {
