@@ -11,10 +11,12 @@ import {
 } from 'flowbite-react';
 import { useState, useRef, useEffect } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
-import { useNavigate } from 'react-router';
+import { useNavigate, useParams } from 'react-router';
 
 export default function UpdatePost() {
-  const navigate = useNavigate(); 
+  const navigate = useNavigate();
+  const { postId } = useParams();
+  const { currentUser } = useSelector((state) => state.user);
   const [loading, setLoading] = useState(false);
   const [imagePreview, setImagePreview] = useState(null);
   const [isUploading, setIsUploading] = useState(false);
@@ -23,6 +25,7 @@ export default function UpdatePost() {
   const fileRef = useRef(null);
   const dispatch = useDispatch();
   const [publishError, setPublishError] = useState(null);
+  const [publishSuccess, setPublishSuccess] = useState(null);
 
   // Initialize formData state
   const [formData, setFormData] = useState({
@@ -32,18 +35,56 @@ export default function UpdatePost() {
     image: ''
   });
 
+  // Fetch post data on component mount
+  useEffect(() => {
+    const fetchPost = async () => {
+      try {
+        setLoading(true);
+        const res = await fetch(`/api/post/getposts?postId=${postId}`);
+        const data = await res.json();
+        
+        if (!res.ok) {
+          throw new Error(data.message || 'Failed to fetch post');
+        }
+
+        if (data.posts && data.posts.length > 0) {
+          const post = data.posts[0];
+          setFormData({
+            title: post.title || '',
+            category: post.category || 'uncategorized',
+            content: post.content || '',
+            image: post.image || ''
+          });
+          
+          if (post.image) {
+            setImagePreview(post.image);
+          }
+        }
+      } catch (error) {
+        console.error('Error fetching post:', error);
+        setPublishError(error.message);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    if (postId) {
+      fetchPost();
+    }
+  }, [postId]);
+
   const handleChange = (e) => {
     setFormData({ ...formData, [e.target.id]: e.target.value });
   };
 
   const handleImageChange = (e) => {
-  const file = e.target.files[0];
+    const file = e.target.files[0];
     if (file) {
       setImage(file);
     }
   };
 
-   useEffect(() => {
+  useEffect(() => {
     if (image) {
       handleFileUpload(image);
     }
@@ -59,18 +100,17 @@ export default function UpdatePost() {
   }, []);
 
   const handleImageUpload = () => {
-    // Image upload logic will be handled by parent component
     setIsUploading(true);
-    setTimeout(() => setIsUploading(false), 1000); // Simulate upload
+    setTimeout(() => setIsUploading(false), 1000);
   };
 
-   const handleFileUpload = async (image) => {
+  const handleFileUpload = async (image) => {
     try {
       if (!image) {
         throw new Error('No file selected');
       }
 
-      const maxSize = 5 * 1024 * 1024; // 5MB for posts
+      const maxSize = 5 * 1024 * 1024;
       if (image.size > maxSize) {
         throw new Error('File size must be less than 5MB');
       }
@@ -118,10 +158,64 @@ export default function UpdatePost() {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
+    setPublishError(null);
+    setPublishSuccess(null);
 
-      console.log('Form Data:', formData);
+    if (!formData.title || !formData.content) {
+      return setPublishError('Please provide title and content');
+    }
 
+    try {
+      setLoading(true);
+      
+      const res = await fetch(`/api/post/updatepost/${postId}/${currentUser._id}`, {
+        method: 'PUT',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        credentials: 'include',
+        body: JSON.stringify({
+          title: formData.title,
+          content: formData.content,
+          category: formData.category,
+          image: formData.image,
+        }),
+      });
+
+      const data = await res.json();
+
+      if (!res.ok) {
+        throw new Error(data.message || 'Failed to update post');
+      }
+
+      setPublishSuccess('Post updated successfully!');
+      
+      // Clear local storage after successful update
+      localStorage.removeItem('postImage');
+      
+      // Redirect to the post page after successful update
+      setTimeout(() => {
+        navigate(`/posts/${data.slug}`);
+      }, 1500);
+
+    } catch (error) {
+      console.error('Error updating post:', error);
+      setPublishError(error.message);
+    } finally {
+      setLoading(false);
+    }
   };
+
+  if (loading && !formData.title) {
+    return (
+      <div className="min-h-screen bg-gray-50 dark:bg-gray-900 flex items-center justify-center">
+        <div className="text-center">
+          <Spinner size="xl" className="mb-4" />
+          <p className="text-gray-600 dark:text-gray-400">Loading post data...</p>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="min-h-screen bg-gray-50 dark:bg-gray-900 py-8">
@@ -129,14 +223,26 @@ export default function UpdatePost() {
         <Card className="shadow-xl bg-white dark:bg-gray-800 border-gray-200 dark:border-gray-700">
           <div className="text-center mb-8">
             <h1 className="text-4xl font-bold text-gray-800 dark:text-white mb-2">
-              Create New Post
+              Update Post
             </h1>
             <p className="text-gray-600 dark:text-gray-300">
-              Share your thoughts and ideas with the world
+              Edit and improve your existing post
             </p>
           </div>
 
           <form className="flex flex-col gap-6" onSubmit={handleSubmit}>
+            {/* Success and Error Alerts */}
+            {publishError && (
+              <Alert color="failure" className="mb-4">
+                {publishError}
+              </Alert>
+            )}
+            {publishSuccess && (
+              <Alert color="success" className="mb-4">
+                {publishSuccess}
+              </Alert>
+            )}
+
             {/* Title & Category Row */}
             <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
               <div className="lg:col-span-2">
@@ -214,7 +320,7 @@ export default function UpdatePost() {
                   className="text-lg font-medium text-gray-700 dark:text-white" 
                 />
                 <p className="text-sm text-gray-500 dark:text-gray-400 mb-3">
-                  Add a compelling image to make your post stand out
+                  Update the featured image for your post
                 </p>
               </div>
               
@@ -287,7 +393,7 @@ export default function UpdatePost() {
                           <svg className="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12" />
                           </svg>
-                          Upload Image
+                          Update Image
                         </>
                       )}
                     </Button>
@@ -297,13 +403,19 @@ export default function UpdatePost() {
             </div>
 
             {/* Action Buttons */}
-            <div className="flex flex-col sm:flex-row gap-4 justify-end pt-4 border-t border-gray-200 dark:border-gray-700">
-              
-              {publishError && (
-                  <Alert color="failure" className="mb-4">
-                    {publishError}
-                  </Alert>
-              )}
+            <div className="flex flex-col sm:flex-row gap-4 justify-between pt-4 border-t border-gray-200 dark:border-gray-700">
+              <Button
+                type="button"
+                color="gray"
+                onClick={() => navigate(-1)}
+                className="sm:w-auto w-full"
+                size="lg"
+              >
+                <svg className="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10 19l-7-7m0 0l7-7m-7 7h18" />
+                </svg>
+                Cancel
+              </Button>
 
               <Button
                 type="submit"
@@ -315,20 +427,17 @@ export default function UpdatePost() {
                 {loading ? (
                   <>
                     <Spinner size="sm" className="mr-2" />
-                    Publishing...
+                    Updating...
                   </>
                 ) : (
                   <>
                     <svg className="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                       <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
                     </svg>
-                    Publish Post
+                    Update Post
                   </>
                 )}
               </Button>
-
-
-
             </div>
           </form>
         </Card>
