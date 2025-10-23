@@ -53,7 +53,7 @@ export default function SignIn() {
           username: data.username,
           email: data.email,
           profilePicture: data.profilePicture,
-          // လိုအပ်တဲ့ field တွေကိုပဲ ထည့်ပါ
+          isAdmin: data.isAdmin,
         };
         dispatch(signInSuccess(userData));
         navigate('/');

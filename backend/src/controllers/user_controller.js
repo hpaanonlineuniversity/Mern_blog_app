@@ -135,3 +135,38 @@ export const getUser = async (req, res, next) => {
     next(error);
   }
 };
+
+
+
+export const updateUserAdmin = async (req, res, next) => {
+  try {
+    // Check if user is authenticated and is admin
+    if (!req.user || !req.user.isAdmin) {
+      return next(errorHandler(403, 'You are not allowed to update admin status'));
+    }
+
+    // Prevent self-admin-status change
+    if (req.user.id === req.params.userId) {
+      return next(errorHandler(403, 'You cannot change your own admin status'));
+    }
+
+    const user = await User.findByIdAndUpdate(
+      req.params.userId,
+      {
+        $set: {
+          isAdmin: req.body.isAdmin
+        },
+      },
+      { new: true }
+    );
+
+    if (!user) {
+      return next(errorHandler(404, 'User not found'));
+    }
+    
+    const { password, ...rest } = user._doc;
+    res.status(200).json(rest);
+  } catch (error) {
+    next(error);
+  }
+};

@@ -6,6 +6,7 @@ import {
   signout,
   test,
   updateUser,
+  updateUserAdmin,
 } from '../controllers/user_controller.js';
 import { verifyToken } from '../utils/verifyUser.js';
 
@@ -22,7 +23,10 @@ router.post('/update/:userId', verifyToken, updateUser); //ok
 router.delete('/delete/:userId', verifyToken, deleteUser); //ok
 router.get('/signout', signout); //ok
 
-router.get('/getusers', verifyToken, getUsers);  //  not tested yet 
+router.get('/getusers', verifyToken, getUsers);  //  ok
 router.get('/:userId', getUser);  //ok
+
+
+router.put('/update-admin/:userId', verifyToken, updateUserAdmin);
 
 export default router;

@@ -1,8 +1,5 @@
-import { Modal, ModalHeader,ModalBody, Button } from 'flowbite-react';
 import { useEffect, useState } from 'react';
 import { useSelector } from 'react-redux';
-import { HiOutlineExclamationCircle } from 'react-icons/hi';
-import { FaCheck, FaTimes } from 'react-icons/fa';
 import DeleteConfirmationModal from './DeleteConfirmationModal';
 
 export default function DashUsers() {
@@ -62,6 +59,7 @@ export default function DashUsers() {
     try {
       setDeleting(true);
       const res = await fetch(`/api/user/delete/${userIdToDelete}`, {
+        credentials: 'include',
         method: 'DELETE',
       });
       const data = await res.json();
@@ -80,6 +78,33 @@ export default function DashUsers() {
       setDeleting(false);
     }
   };
+
+  const handleToggleAdmin = async (userId, currentAdminStatus) => {
+  try {
+    const res = await fetch(`/api/user/update-admin/${userId}`, {
+      method: 'PUT',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      credentials: 'include',
+      body: JSON.stringify({
+        isAdmin: !currentAdminStatus
+      }),
+    });
+    
+    const data = await res.json();
+    if (res.ok) {
+      // Update local state
+      setUsers(prev => prev.map(user => 
+        user._id === userId ? { ...user, isAdmin: !currentAdminStatus } : user
+      ));
+    } else {
+      console.log(data.message);
+    }
+  } catch (error) {
+    console.log(error.message);
+  }
+};
 
   return (
     <div className='overflow-x-auto md:mx-auto p-3 scrollbar scrollbar-track-slate-100 scrollbar-thumb-slate-300 dark:scrollbar-track-slate-700 dark:scrollbar-thumb-slate-500'>
@@ -119,13 +144,19 @@ export default function DashUsers() {
                         {user.username}
                       </td>
                       <td className='px-6 py-4'>{user.email}</td>
+
                       <td className='px-6 py-4'>
-                        {user.isAdmin ? (
-                          <FaCheck className='text-green-500' />
-                        ) : (
-                          <FaTimes className='text-red-500' />
-                        )}
+                        <label className="relative inline-flex items-center cursor-pointer">
+                          <input 
+                            type="checkbox" 
+                            checked={user.isAdmin}
+                            onChange={() => handleToggleAdmin(user._id, user.isAdmin)}
+                            className="sr-only peer" 
+                          />
+                          <div className="w-11 h-6 bg-gray-200 peer-focus:outline-none rounded-full peer dark:bg-gray-700 peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all dark:border-gray-600 peer-checked:bg-green-600"></div>
+                        </label>
                       </td>
+
                       <td className='px-6 py-4'>
                         <span
                           onClick={() => {
