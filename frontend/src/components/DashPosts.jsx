@@ -1,11 +1,10 @@
-import { Modal, Button, Badge, Spinner, Alert } from 'flowbite-react';
-import { ModalBody, ModalHeader } from "flowbite-react";
+import { Button, Badge, Spinner, Alert } from 'flowbite-react';
 import { useEffect, useState } from 'react';
 import { useSelector } from 'react-redux';
 import { Link } from 'react-router';
 import DeleteConfirmationModal from './DeleteConfirmationModal';
 import { 
-  HiOutlineExclamationCircle, 
+  HiOutlineNewspaper, 
   HiOutlineEye, 
   HiOutlinePencil, 
   HiOutlineTrash,
@@ -278,29 +277,26 @@ export default function DashPosts() {
             </table>
           </div>
         </div>
-      ) : (
-        <div className="text-center py-12">
-          <div className="text-gray-400 dark:text-gray-500 mb-4">
-            <HiOutlinePencil className="w-16 h-16 mx-auto" />
-          </div>
-          <h3 className="text-lg font-medium text-gray-900 dark:text-white mb-2">
-            No posts found
-          </h3>
-          <p className="text-gray-600 dark:text-gray-400 mb-6">
-            {searchTerm || filterCategory 
-              ? 'Try adjusting your search filters' 
-              : 'Start creating your first blog post!'}
-          </p>
-          <Link
-            to="/create-post"
-            className="inline-flex items-center gap-2 px-6 py-3 bg-teal-500 text-white rounded-lg hover:bg-teal-600 transition-all shadow-md"
-          >
-            <HiOutlinePlus className="w-5 h-5" />
-            Create Your First Post
-          </Link>
-        </div>
-      )}
-
+      ) :(
+      <div className="text-center py-12">
+        <HiOutlineNewspaper className="w-24 h-24 mx-auto text-gray-300 mb-4" />
+        <h3 className="text-xl font-semibold text-gray-900 dark:text-white mb-2">
+          {searchTerm || filterCategory ? 'No matching posts found' : 'No posts yet'}
+        </h3>
+        <p className="text-gray-600 dark:text-gray-400 mb-6 max-w-md mx-auto">
+          {searchTerm || filterCategory 
+            ? 'Try adjusting your search terms or filters to find what you\'re looking for.'
+            : 'Start sharing your thoughts with the world! Create your first blog post to get started.'}
+        </p>
+        <Link
+          to="/create-post"
+          className="inline-flex items-center gap-2 px-6 py-3 bg-teal-500 text-white rounded-lg hover:bg-teal-600 transition-all"
+        >
+          <HiOutlinePlus className="w-5 h-5" />
+          Create Your First Post
+        </Link>
+      </div>
+    )} 
       {/* Show More Button */}
       {showMore && userPosts.length > 0 && (
         <div className="flex justify-center mt-8">
