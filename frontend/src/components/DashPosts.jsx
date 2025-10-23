@@ -1,9 +1,15 @@
-import { Modal, Table, Button } from 'flowbite-react';
+import { Modal, Button, Badge, Spinner, Alert } from 'flowbite-react';
 import { useEffect, useState } from 'react';
 import { useSelector } from 'react-redux';
 import { Link } from 'react-router';
-import { HiOutlineExclamationCircle } from 'react-icons/hi';
-
+import { 
+  HiOutlineExclamationCircle, 
+  HiOutlineEye, 
+  HiOutlinePencil, 
+  HiOutlineTrash,
+  HiOutlinePlus,
+  HiSearch
+} from 'react-icons/hi';
 
 export default function DashPosts() {
   const { currentUser } = useSelector((state) => state.user);
@@ -11,109 +17,325 @@ export default function DashPosts() {
   const [showMore, setShowMore] = useState(true);
   const [showModal, setShowModal] = useState(false);
   const [postIdToDelete, setPostIdToDelete] = useState('');
-  
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState('');
+  const [searchTerm, setSearchTerm] = useState('');
+  const [filterCategory, setFilterCategory] = useState('');
+
+  useEffect(() => {
+    if (currentUser?._id) {
+      fetchUserPosts();
+    }
+  }, [currentUser?._id]);
+
+  const fetchUserPosts = async (startIndex = 0) => {
+    try {
+      setError('');
+      setLoading(true);
+      const searchParams = new URLSearchParams({
+        userId: currentUser._id,
+        startIndex: startIndex.toString(),
+        limit: '8',
+        ...(searchTerm && { searchTerm }),
+        ...(filterCategory && { category: filterCategory }),
+      });
+
+      const res = await fetch(`/api/post/getposts?${searchParams}`);
+      const data = await res.json();
+
+      if (!res.ok) {
+        throw new Error(data.message || 'Failed to fetch posts');
+      }
+
+      if (startIndex === 0) {
+        setUserPosts(data.posts);
+      } else {
+        setUserPosts(prev => [...prev, ...data.posts]);
+      }
+
+      setShowMore(data.posts.length === 8);
+    } catch (error) {
+      setError(error.message);
+      console.error('Error fetching posts:', error);
+    } finally {
+      setLoading(false);
+    }
+  };
 
   const handleShowMore = async () => {
-    
+    const startIndex = userPosts.length;
+    await fetchUserPosts(startIndex);
   };
 
   const handleDeletePost = async () => {
-    
+    try {
+      setError('');
+      const res = await fetch(`/api/post/deletepost/${postIdToDelete}/${currentUser._id}`, {
+        method: 'DELETE',
+      });
+
+      const data = await res.json();
+
+      if (!res.ok) {
+        throw new Error(data.message || 'Failed to delete post');
+      }
+
+      setUserPosts(prev => prev.filter(post => post._id !== postIdToDelete));
+      setShowModal(false);
+      setPostIdToDelete('');
+    } catch (error) {
+      setError(error.message);
+    }
   };
 
+  const handleSearch = (e) => {
+    e.preventDefault();
+    fetchUserPosts(0);
+  };
+
+  const handleResetFilters = () => {
+    setSearchTerm('');
+    setFilterCategory('');
+    fetchUserPosts(0);
+  };
+
+  // Get unique categories for filter
+  const categories = [...new Set(userPosts.map(post => post.category).filter(Boolean))];
+
+  if (loading && userPosts.length === 0) {
+    return (
+      <div className="flex justify-center items-center min-h-64">
+        <Spinner size="xl" />
+        <span className="ml-3 text-lg">Loading your posts...</span>
+      </div>
+    );
+  }
+
   return (
-    <div className='table-auto overflow-x-scroll md:mx-auto p-3 scrollbar scrollbar-track-slate-100 scrollbar-thumb-slate-300 dark:scrollbar-track-slate-700 dark:scrollbar-thumb-slate-500'>
-      {currentUser.isAdmin && userPosts.length > 0 ? (
-        <>
-          <Table hoverable className='shadow-md'>
-            <Table.Head>
-              <Table.HeadCell>Date updated</Table.HeadCell>
-              <Table.HeadCell>Post image</Table.HeadCell>
-              <Table.HeadCell>Post title</Table.HeadCell>
-              <Table.HeadCell>Category</Table.HeadCell>
-              <Table.HeadCell>Delete</Table.HeadCell>
-              <Table.HeadCell>
-                <span>Edit</span>
-              </Table.HeadCell>
-            </Table.Head>
-            {userPosts.map((post) => (
-              <Table.Body className='divide-y'>
-                <Table.Row className='bg-white dark:border-gray-700 dark:bg-gray-800'>
-                  <Table.Cell>
-                    {new Date(post.updatedAt).toLocaleDateString()}
-                  </Table.Cell>
-                  <Table.Cell>
-                    <Link to={`/post/${post.slug}`}>
-                      <img
-                        src={post.image}
-                        alt={post.title}
-                        className='w-20 h-10 object-cover bg-gray-500'
-                      />
-                    </Link>
-                  </Table.Cell>
-                  <Table.Cell>
-                    <Link
-                      className='font-medium text-gray-900 dark:text-white'
-                      to={`/post/${post.slug}`}
-                    >
-                      {post.title}
-                    </Link>
-                  </Table.Cell>
-                  <Table.Cell>{post.category}</Table.Cell>
-                  <Table.Cell>
-                    <span
-                      onClick={() => {
-                        setShowModal(true);
-                        setPostIdToDelete(post._id);
-                      }}
-                      className='font-medium text-red-500 hover:underline cursor-pointer'
-                    >
-                      Delete
-                    </span>
-                  </Table.Cell>
-                  <Table.Cell>
-                    <Link
-                      className='text-teal-500 hover:underline'
-                      to={`/update-post/${post._id}`}
-                    >
-                      <span>Edit</span>
-                    </Link>
-                  </Table.Cell>
-                </Table.Row>
-              </Table.Body>
+    <div className="p-6 mx-auto">
+      {/* Header Section */}
+      <div className="flex flex-col md:flex-row justify-between items-start md:items-center mb-6 gap-4">
+        <div>
+          <h1 className="text-2xl font-bold text-gray-900 dark:text-white">
+            My Posts
+          </h1>
+          <p className="text-gray-600 dark:text-gray-400 mt-1">
+            Manage and track your blog posts
+          </p>
+        </div>
+        <Link
+          to="/create-post"
+          className="flex items-center gap-2 px-4 py-2 bg-teal-500 text-white rounded-lg hover:bg-teal-600 transition-all shadow-md"
+        >
+          <HiOutlinePlus className="w-5 h-5" />
+          New Post
+        </Link>
+      </div>
+
+      {/* Filters Section */}
+      <div className="bg-white dark:bg-gray-800 rounded-lg shadow-sm border border-gray-200 dark:border-gray-700 p-4 mb-6">
+        <form onSubmit={handleSearch} className="flex flex-col md:flex-row gap-4">
+          <div className="flex-1">
+            <div className="relative">
+              <HiSearch className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-5 h-5" />
+              <input
+                type="text"
+                placeholder="Search posts by title or content..."
+                value={searchTerm}
+                onChange={(e) => setSearchTerm(e.target.value)}
+                className="w-full pl-10 pr-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-white focus:ring-2 focus:ring-teal-500 focus:border-transparent"
+              />
+            </div>
+          </div>
+          <select
+            value={filterCategory}
+            onChange={(e) => setFilterCategory(e.target.value)}
+            className="px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-white focus:ring-2 focus:ring-teal-500 focus:border-transparent"
+          >
+            <option value="">All Categories</option>
+            {categories.map(category => (
+              <option key={category} value={category}>{category}</option>
             ))}
-          </Table>
-          {showMore && (
-            <button
-              onClick={handleShowMore}
-              className='w-full text-teal-500 self-center text-sm py-7'
-            >
-              Show more
-            </button>
-          )}
-        </>
-      ) : (
-        <p>You have no posts yet!</p>
+          </select>
+          <Button type="submit" className="bg-teal-500 hover:bg-teal-600">
+            Search
+          </Button>
+          <Button type="button" color="light" onClick={handleResetFilters}>
+            Reset
+          </Button>
+        </form>
+      </div>
+
+      {/* Error Alert */}
+      {error && (
+        <Alert color="failure" className="mb-6">
+          <span>{error}</span>
+        </Alert>
       )}
+
+      {/* Posts Table - Custom Implementation */}
+      {userPosts.length > 0 ? (
+        <div className="bg-white dark:bg-gray-800 rounded-lg shadow-sm border border-gray-200 dark:border-gray-700 overflow-hidden">
+          <div className="overflow-x-auto">
+            <table className="w-full text-sm text-left text-gray-500 dark:text-gray-400">
+              <thead className="text-xs text-gray-700 uppercase bg-gray-50 dark:bg-gray-700 dark:text-gray-400">
+                <tr>
+                  <th scope="col" className="px-6 py-3">Date Updated</th>
+                  <th scope="col" className="px-6 py-3">Post Image</th>
+                  <th scope="col" className="px-6 py-3">Title & Content</th>
+                  <th scope="col" className="px-6 py-3">Category</th>
+                  <th scope="col" className="px-6 py-3">Status</th>
+                  <th scope="col" className="px-6 py-3 text-center">Actions</th>
+                </tr>
+              </thead>
+              <tbody>
+                {userPosts.map((post) => (
+                  <tr key={post._id} className="bg-white border-b dark:bg-gray-800 dark:border-gray-700 hover:bg-gray-50 dark:hover:bg-gray-600">
+                    <td className="px-6 py-4">
+                      <div className="flex flex-col">
+                        <span className="font-medium text-gray-900 dark:text-white">
+                          {new Date(post.updatedAt).toLocaleDateString()}
+                        </span>
+                        <span className="text-xs text-gray-500 dark:text-gray-400">
+                          {new Date(post.updatedAt).toLocaleTimeString()}
+                        </span>
+                      </div>
+                    </td>
+                    <td className="px-6 py-4">
+                      <Link to={`/post/${post.slug}`}>
+                        {post.image ? (
+                          <img
+                            src={post.image}
+                            alt={post.title}
+                            className="w-16 h-12 object-cover rounded-lg bg-gray-200 dark:bg-gray-600 hover:opacity-90 transition-opacity"
+                            onError={(e) => {
+                              e.target.src = 'https://via.placeholder.com/64x48?text=No+Image';
+                            }}
+                          />
+                        ) : (
+                          <div className="w-16 h-12 bg-gray-200 dark:bg-gray-600 rounded-lg flex items-center justify-center">
+                            <span className="text-xs text-gray-500">No Image</span>
+                          </div>
+                        )}
+                      </Link>
+                    </td>
+                    <td className="px-6 py-4">
+                      <div className="max-w-xs">
+                        <Link 
+                          to={`/post/${post.slug}`}
+                          className="font-semibold text-gray-900 dark:text-white hover:text-teal-600 dark:hover:text-teal-400 line-clamp-1"
+                        >
+                          {post.title}
+                        </Link>
+                        <p className="text-sm text-gray-600 dark:text-gray-400 line-clamp-2 mt-1">
+                          {post.content?.replace(/<[^>]*>/g, '').substring(0, 100)}...
+                        </p>
+                      </div>
+                    </td>
+                    <td className="px-6 py-4">
+                      <Badge color="info" className="w-fit">
+                        {post.category || 'Uncategorized'}
+                      </Badge>
+                    </td>
+                    <td className="px-6 py-4">
+                      <Badge color="success" className="w-fit">
+                        Published
+                      </Badge>
+                    </td>
+                    <td className="px-6 py-4">
+                      <div className="flex items-center justify-center gap-2">
+                        <Link
+                          to={`/post/${post.slug}`}
+                          className="p-2 text-gray-600 dark:text-gray-400 hover:text-blue-600 dark:hover:text-blue-400 hover:bg-blue-50 dark:hover:bg-blue-900/20 rounded-lg transition-colors"
+                          title="View Post"
+                        >
+                          <HiOutlineEye className="w-5 h-5" />
+                        </Link>
+                        <Link
+                          to={`/update-post/${post._id}`}
+                          className="p-2 text-gray-600 dark:text-gray-400 hover:text-green-600 dark:hover:text-green-400 hover:bg-green-50 dark:hover:bg-green-900/20 rounded-lg transition-colors"
+                          title="Edit Post"
+                        >
+                          <HiOutlinePencil className="w-5 h-5" />
+                        </Link>
+                        <button
+                          onClick={() => {
+                            setShowModal(true);
+                            setPostIdToDelete(post._id);
+                          }}
+                          className="p-2 text-gray-600 dark:text-gray-400 hover:text-red-600 dark:hover:text-red-400 hover:bg-red-50 dark:hover:bg-red-900/20 rounded-lg transition-colors"
+                          title="Delete Post"
+                        >
+                          <HiOutlineTrash className="w-5 h-5" />
+                        </button>
+                      </div>
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+        </div>
+      ) : (
+        <div className="text-center py-12">
+          <div className="text-gray-400 dark:text-gray-500 mb-4">
+            <HiOutlinePencil className="w-16 h-16 mx-auto" />
+          </div>
+          <h3 className="text-lg font-medium text-gray-900 dark:text-white mb-2">
+            No posts found
+          </h3>
+          <p className="text-gray-600 dark:text-gray-400 mb-6">
+            {searchTerm || filterCategory 
+              ? 'Try adjusting your search filters' 
+              : 'Start creating your first blog post!'}
+          </p>
+          <Link
+            to="/create-post"
+            className="inline-flex items-center gap-2 px-6 py-3 bg-teal-500 text-white rounded-lg hover:bg-teal-600 transition-all shadow-md"
+          >
+            <HiOutlinePlus className="w-5 h-5" />
+            Create Your First Post
+          </Link>
+        </div>
+      )}
+
+      {/* Show More Button */}
+      {showMore && userPosts.length > 0 && (
+        <div className="flex justify-center mt-8">
+          <Button
+            onClick={handleShowMore}
+            className="bg-teal-500 hover:bg-teal-600 px-8"
+            disabled={loading}
+          >
+            {loading ? <Spinner size="sm" className="mr-2" /> : null}
+            Load More Posts
+          </Button>
+        </div>
+      )}
+
+      {/* Delete Confirmation Modal */}
       <Modal
         show={showModal}
         onClose={() => setShowModal(false)}
         popup
-        size='md'
+        size="md"
       >
         <Modal.Header />
         <Modal.Body>
-          <div className='text-center'>
-            <HiOutlineExclamationCircle className='h-14 w-14 text-gray-400 dark:text-gray-200 mb-4 mx-auto' />
-            <h3 className='mb-5 text-lg text-gray-500 dark:text-gray-400'>
-              Are you sure you want to delete this post?
+          <div className="text-center">
+            <HiOutlineExclamationCircle className="h-16 w-16 text-red-500 dark:text-red-400 mb-4 mx-auto" />
+            <h3 className="mb-4 text-lg font-medium text-gray-900 dark:text-white">
+              Delete Post Confirmation
             </h3>
-            <div className='flex justify-center gap-4'>
-              <Button color='failure' onClick={handleDeletePost}>
-                Yes, I'm sure
+            <p className="mb-6 text-gray-600 dark:text-gray-400">
+              Are you sure you want to delete this post? This action cannot be undone and the post will be permanently removed.
+            </p>
+            <div className="flex justify-center gap-4">
+              <Button color="failure" onClick={handleDeletePost} className="px-6">
+                Yes, Delete It
               </Button>
-              <Button color='gray' onClick={() => setShowModal(false)}>
-                No, cancel
+              <Button color="gray" onClick={() => setShowModal(false)} className="px-6">
+                Cancel
               </Button>
             </div>
           </div>
