@@ -3,6 +3,7 @@ import { ModalBody, ModalHeader } from "flowbite-react";
 import { useEffect, useState } from 'react';
 import { useSelector } from 'react-redux';
 import { Link } from 'react-router';
+import DeleteConfirmationModal from './DeleteConfirmationModal';
 import { 
   HiOutlineExclamationCircle, 
   HiOutlineEye, 
@@ -314,34 +315,21 @@ export default function DashPosts() {
         </div>
       )}
 
-      {/* Delete Confirmation Modal */}
-      <Modal
+      <div className="p-6 mx-auto">
+        
+      {/* Modal component */}
+
+      <DeleteConfirmationModal
         show={showModal}
         onClose={() => setShowModal(false)}
-        popup
-        size="md"
-      >
-        <ModalHeader />
-        <ModalBody>
-          <div className="text-center">
-            <HiOutlineExclamationCircle className="h-16 w-16 text-red-500 dark:text-red-400 mb-4 mx-auto" />
-            <h3 className="mb-4 text-lg font-medium text-gray-900 dark:text-white">
-              Delete Post Confirmation
-            </h3>
-            <p className="mb-6 text-gray-600 dark:text-gray-400">
-              Are you sure you want to delete this post? This action cannot be undone and the post will be permanently removed.
-            </p>
-            <div className="flex justify-center gap-4">
-              <Button color="failure" onClick={handleDeletePost} className="px-6">
-                Yes, Delete It
-              </Button>
-              <Button color="gray" onClick={() => setShowModal(false)} className="px-6">
-                Cancel
-              </Button>
-            </div>
-          </div>
-        </ModalBody>
-      </Modal>
+        onConfirm={handleDeletePost}
+        title="Delete Post Confirmation"
+        message="Are you sure you want to delete this post? This action cannot be undone and the post will be permanently removed."
+        confirmText = "Yes, Delete It"
+        cancelText = "Cancel"
+      />
+       </div>
+
     </div>
   );
 }
