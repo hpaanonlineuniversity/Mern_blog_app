@@ -6,6 +6,7 @@ import postRoutes from './routes/post_route.js';
 import commentRoutes from './routes/comment_route.js';
 import cors from 'cors';
 import cookieParser from 'cookie-parser';
+import { createDefaultAdmin } from './utils/createdefaultadmin.js';
 
 
 const corsOptions = {
@@ -57,6 +58,7 @@ connectDB().then(() => {
       app.listen(PORT, '0.0.0.0', () => {
           console.log(`✅ Server is running on http://0.0.0.0:${PORT}`);
           console.log(`✅ Accessible via http://localhost:${PORT}`);
+          createDefaultAdmin();
       }); 
 }).catch((err) => {
   console.error('Database connection failed:', err);
