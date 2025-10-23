@@ -4,7 +4,7 @@ import { USERNAME, EMAIL, PASSWORD } from '../configs/config.js';
 
 export const createDefaultAdmin = async () => {
   try {
-    const existingAdmin = await User.findOne({ email: 'admin@gmail.com' });
+    const existingAdmin = await User.findOne({ email: EMAIL });
     
     if (!existingAdmin) {
       const hashedPassword = bcrypt.hashSync(PASSWORD, 10);
