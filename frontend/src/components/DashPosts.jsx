@@ -1,4 +1,5 @@
 import { Modal, Button, Badge, Spinner, Alert } from 'flowbite-react';
+import { ModalBody, ModalHeader } from "flowbite-react";
 import { useEffect, useState } from 'react';
 import { useSelector } from 'react-redux';
 import { Link } from 'react-router';
@@ -320,8 +321,8 @@ export default function DashPosts() {
         popup
         size="md"
       >
-        <Modal.Header />
-        <Modal.Body>
+        <ModalHeader />
+        <ModalBody>
           <div className="text-center">
             <HiOutlineExclamationCircle className="h-16 w-16 text-red-500 dark:text-red-400 mb-4 mx-auto" />
             <h3 className="mb-4 text-lg font-medium text-gray-900 dark:text-white">
@@ -339,7 +340,7 @@ export default function DashPosts() {
               </Button>
             </div>
           </div>
-        </Modal.Body>
+        </ModalBody>
       </Modal>
     </div>
   );
