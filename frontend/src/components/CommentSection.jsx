@@ -95,27 +95,6 @@ export default function CommentSection({ postId }) {
         c._id === comment._id ? { ...c, content: editedContent } : c
       )
     );
-    
-    try {
-      const res = await fetch(`/api/comment/editComment/${comment._id}`, {
-        method: 'PUT',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({ content: editedContent }),
-      });
-      if (!res.ok) {
-        throw new Error('Failed to update comment');
-      }
-    } catch (error) {
-      console.log(error.message);
-      // Revert the optimistic update if failed
-      setComments(
-        comments.map((c) =>
-          c._id === comment._id ? { ...c, content: comment.content } : c
-        )
-      );
-    }
   };
 
   const handleDelete = async (commentId) => {
