@@ -1,4 +1,5 @@
 import { BrowserRouter , Routes , Route} from 'react-router';
+import Search from './pages/Search';
 import Home from './pages/Home';
 import About from './pages/About';
 import Signin from './pages/Signin';
@@ -29,6 +30,7 @@ const App = () => {
 
           <Route  element={<PrivateRoute/>} >
             <Route path='/' element={<Home/>} />
+            <Route path='/search' element={<Search/>} />
             <Route path='/about' element={<About />} />
             <Route path='/profile' element={<PrivateProfile />} />
             <Route path='/dashboard' element={<Dashboard />} />

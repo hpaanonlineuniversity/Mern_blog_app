@@ -7,6 +7,7 @@ import { AiOutlineSearch } from 'react-icons/ai';
 import { FaMoon, FaSun } from 'react-icons/fa';
 import { signOut } from '../redux/user/userSlice';
 import { toggleTheme } from '../redux/theme/themeSlice';
+import { useEffect, useState } from 'react';
 
 const Header = () => {
   const { currentUser } = useSelector((state) => state.user);
@@ -14,63 +15,106 @@ const Header = () => {
   const navigate = useNavigate();
   const dispatch = useDispatch();
 
-  const file = useLocation().pathname;
+  const [searchTerm, setSearchTerm] = useState('');
+  const location = useLocation().pathname;
 
-   const handleSignOut = async () => {
-      try {
-        await fetch(`/api/user/signout`);
-        dispatch(signOut());
-      } catch (error) {
-        console.log(error);
-      }
-    };
+  useEffect(() => {
+    const urlParams = new URLSearchParams(location.search);
+    const searchTermFromUrl = urlParams.get('searchTerm');
+
+    if (searchTermFromUrl) {
+      setSearchTerm(searchTermFromUrl);
+    }
+  }, [location.search]);
+
+  const handleSignOut = async () => {
+    try {
+      await fetch(`/api/user/signout`);
+      dispatch(signOut());
+    } catch (error) {
+      console.log(error);
+    }
+  };
+
+  // ✅ NEW: Handle form submission
+  const handleSubmit = (e) => {
+    e.preventDefault();
+    
+    // URL search params update လုပ်မယ်
+    const urlParams = new URLSearchParams(window.location.search);
+    
+    if (searchTerm) {
+      urlParams.set('searchTerm', searchTerm);
+    } else {
+      urlParams.delete('searchTerm');
+    }
+    
+    // New URL create လုပ်ပြီး navigate လုပ်မယ်
+    const searchQuery = urlParams.toString();
+    navigate(`/search?${searchQuery}`);
+  };
 
   return (
     <>
       <Navbar className='border-b-2'>
         <Link
-        to='/'
-        className='self-center whitespace-nowrap text-sm sm:text-xl font-semibold dark:text-white'
+          to='/'
+          className='self-center whitespace-nowrap text-sm sm:text-xl font-semibold dark:text-white'
         >
           <span className='px-2 py-1 bg-gradient-to-r from-indigo-500 via-purple-500 to-pink-500 rounded-lg text-white'>
-          ဘားအံ's
+            ဘားအံ's
           </span>
-        Blog App
-      </Link>
+          Blog App
+        </Link>
 
-          {/* Search Bar */}
-      <div className='flex-1 max-w-lg mx-4'>
-        <form className='w-full'>
-          <TextInput
-            type='text'
-            placeholder='Search articles...'
-            rightIcon={AiOutlineSearch}
-            className='hidden lg:inline rounded-full'
-            size="md"
-          />
-        </form>
-      </div>
+        {/* Search Bar - FIXED */}
+        <div className='flex-1 max-w-lg mx-4'>
+          <form 
+            className='w-full' 
+            onSubmit={handleSubmit} // ✅ ADDED: Form submission handler
+          >
+            <TextInput
+              type='text'
+              placeholder='Search articles...'
+              rightIcon={AiOutlineSearch}
+              className='hidden lg:inline rounded-full'
+              size="md"
+              value={searchTerm}
+              onChange={(e) => setSearchTerm(e.target.value)}
+              onKeyDown={(e) => {
+                // ✅ Optional: Enter key နှိပ်ရင်လည်း search လုပ်မယ်
+                if (e.key === 'Enter') {
+                  handleSubmit(e);
+                }
+              }}
+            />
+          </form>
+        </div>
 
-      <Button className='w-12 h-10 lg:hidden' color='gray' pill>
-        <AiOutlineSearch />
-      </Button>
+        {/* Mobile Search Button - FIXED */}
+        <Button 
+          className='w-12 h-10 lg:hidden' 
+          color='gray' 
+          pill
+          onClick={handleSubmit} // ✅ ADDED: Mobile search button click handler
+        >
+          <AiOutlineSearch />
+        </Button>
 
-       {/* Navigation Links - NavbarLink ကို တိုက်ရိုက်သုံးပါ */}
+        {/* Navigation Links */}
         <NavbarCollapse>
-          <NavbarLink as={Link} to='/' active={file === "/"}>
+          <NavbarLink as={Link} to='/' active={location === "/"}>
             Home
           </NavbarLink>
-          <NavbarLink as={Link} to='/about' active={file === "/about"}>
+          <NavbarLink as={Link} to='/about' active={location === "/about"}>
             About
           </NavbarLink>
-          <NavbarLink as={Link} to='/projects'active={file === "/projects"}>
+          <NavbarLink as={Link} to='/projects' active={location === "/projects"}>
             Projects
           </NavbarLink>
         </NavbarCollapse>
 
-
         <div className='flex gap-2 md:order-2'>
-
           <Button
             className='w-12 h-10 hidden sm:inline'
             color='gray'
@@ -80,7 +124,7 @@ const Header = () => {
             {theme === 'light' ? <FaSun /> : <FaMoon />}
           </Button>
 
-            {currentUser ? (
+          {currentUser ? (
             <Dropdown
               arrowIcon={false}
               inline
@@ -106,23 +150,19 @@ const Header = () => {
               <DropdownDivider />
               <DropdownItem onClick={handleSignOut}>Sign out</DropdownItem>
             </Dropdown>
-
           ) : (
             <Link to='/sign-in'>
               <Button color='purple' outline>
                 Sign In
               </Button>
             </Link>
-            )}          
+          )}          
         </div>
 
-
-        {/* NavbarToggle ထည့်ပါ (mobile menu အတွက်) */}
         <NavbarToggle />
-
       </Navbar>
     </>
   )
 }
 
-export default Header
+export default Header;
