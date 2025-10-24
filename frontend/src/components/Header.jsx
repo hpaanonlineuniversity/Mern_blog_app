@@ -1,6 +1,6 @@
 import { Avatar, Button, Dropdown, Navbar, TextInput } from 'flowbite-react';
 import { DropdownDivider, DropdownHeader, DropdownItem } from "flowbite-react";
-import { NavbarBrand, NavbarCollapse, NavbarLink, NavbarToggle } from "flowbite-react";
+import { NavbarCollapse, NavbarLink, NavbarToggle } from "flowbite-react";
 import { Link, useLocation, useNavigate } from 'react-router';
 import { useSelector, useDispatch } from 'react-redux';
 import { AiOutlineSearch } from 'react-icons/ai';
