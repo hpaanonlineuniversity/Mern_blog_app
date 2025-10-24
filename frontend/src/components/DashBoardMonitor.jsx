@@ -5,6 +5,10 @@ import {
   HiArrowNarrowUp,
   HiDocumentText,
   HiOutlineUserGroup,
+  HiTrendingUp,
+  HiUser,
+  HiChat,
+  HiNewspaper,
 } from 'react-icons/hi';
 import { Button } from 'flowbite-react';
 import { Link } from 'react-router';
@@ -19,233 +23,283 @@ export default function DashBoardMonitor() {
   const [lastMonthUsers, setLastMonthUsers] = useState(0);
   const [lastMonthPosts, setLastMonthPosts] = useState(0);
   const [lastMonthComments, setLastMonthComments] = useState(0);
+  const [loading, setLoading] = useState(true);
   const { currentUser } = useSelector((state) => state.user);
 
   useEffect(() => {
-    const fetchUsers = async () => {
+    const fetchData = async () => {
       try {
-        const res = await fetch('/api/user/getusers?limit=5');
-        const data = await res.json();
-        if (res.ok) {
-          setUsers(data.users);
-          setTotalUsers(data.totalUsers);
-          setLastMonthUsers(data.lastMonthUsers);
-        }
-      } catch (error) {
-        console.log(error.message);
-      }
-    };
+        setLoading(true);
+        
+        const [usersRes, postsRes, commentsRes] = await Promise.all([
+          fetch('/api/user/getusers?limit=5'),
+          fetch('/api/post/getposts?limit=5'),
+          fetch('/api/comment/getcomments?limit=5')
+        ]);
 
-    const fetchPosts = async () => {
-      try {
-        const res = await fetch('/api/post/getposts?limit=5');
-        const data = await res.json();
-        if (res.ok) {
-          setPosts(data.posts);
-          setTotalPosts(data.totalPosts);
-          setLastMonthPosts(data.lastMonthPosts);
-        }
-      } catch (error) {
-        console.log(error.message);
-      }
-    };
+        const usersData = await usersRes.json();
+        const postsData = await postsRes.json();
+        const commentsData = await commentsRes.json();
 
-    const fetchComments = async () => {
-      try {
-        const res = await fetch('/api/comment/getcomments?limit=5');
-        const data = await res.json();
-        if (res.ok) {
-          setComments(data.comments);
-          setTotalComments(data.totalComments);
-          setLastMonthComments(data.lastMonthComments);
+        if (usersRes.ok) {
+          setUsers(usersData.users);
+          setTotalUsers(usersData.totalUsers);
+          setLastMonthUsers(usersData.lastMonthUsers);
+        }
+
+        if (postsRes.ok) {
+          setPosts(postsData.posts);
+          setTotalPosts(postsData.totalPosts);
+          setLastMonthPosts(postsData.lastMonthPosts);
+        }
+
+        if (commentsRes.ok) {
+          setComments(commentsData.comments);
+          setTotalComments(commentsData.totalComments);
+          setLastMonthComments(commentsData.lastMonthComments);
         }
       } catch (error) {
         console.log(error.message);
+      } finally {
+        setLoading(false);
       }
     };
 
     if (currentUser.isAdmin) {
-      fetchUsers();
-      fetchPosts();
-      fetchComments();
+      fetchData();
     }
   }, [currentUser]);
 
+  if (loading) {
+    return (
+      <div className="min-h-screen flex items-center justify-center">
+        <div className="animate-spin rounded-full h-32 w-32 border-b-2 border-purple-500"></div>
+      </div>
+    );
+  }
+
   return (
-    <div className='p-3 md:mx-auto'>
-      {/* Summary Cards */}
-      <div className='flex-wrap flex gap-4 justify-center'>
-        <div className='flex flex-col p-3 dark:bg-slate-800 gap-4 md:w-72 w-full rounded-md shadow-md'>
-          <div className='flex justify-between'>
-            <div className=''>
-              <h3 className='text-gray-500 text-md uppercase'>Total Users</h3>
-              <p className='text-2xl'>{totalUsers}</p>
+    <div className='p-6 max-w-7xl mx-auto'>
+      {/* Header */}
+      <div className='mb-8'>
+        <h1 className='text-3xl font-bold text-gray-800 dark:text-white'>Dashboard Overview</h1>
+        <p className='text-gray-600 dark:text-gray-400 mt-2'>Welcome back, {currentUser.username}! Here's what's happening.</p>
+      </div>
+
+      {/* Summary Cards - Improved Design */}
+      <div className='grid grid-cols-1 md:grid-cols-3 gap-6 mb-8'>
+        {/* Users Card */}
+        <div className='bg-gradient-to-br from-blue-500 to-blue-600 rounded-2xl p-6 text-white shadow-lg transform hover:scale-105 transition-transform duration-200'>
+          <div className='flex justify-between items-start'>
+            <div>
+              <p className='text-blue-100 text-sm font-medium'>Total Users</p>
+              <p className='text-3xl font-bold mt-2'>{totalUsers}</p>
+              <div className='flex items-center mt-3'>
+                <HiTrendingUp className='text-green-300 mr-1' />
+                <span className='text-green-300 text-sm font-medium'>+{lastMonthUsers} this month</span>
+              </div>
             </div>
-            <HiOutlineUserGroup className='bg-teal-600 text-white rounded-full text-5xl p-3 shadow-lg' />
-          </div>
-          <div className='flex gap-2 text-sm'>
-            <span className='text-green-500 flex items-center'>
-              <HiArrowNarrowUp />
-              {lastMonthUsers}
-            </span>
-            <div className='text-gray-500'>Last month</div>
+            <div className='bg-white/20 p-3 rounded-xl'>
+              <HiUser className='text-2xl' />
+            </div>
           </div>
         </div>
 
-        <div className='flex flex-col p-3 dark:bg-slate-800 gap-4 md:w-72 w-full rounded-md shadow-md'>
-          <div className='flex justify-between'>
-            <div className=''>
-              <h3 className='text-gray-500 text-md uppercase'>Total Comments</h3>
-              <p className='text-2xl'>{totalComments}</p>
+        {/* Posts Card */}
+        <div className='bg-gradient-to-br from-green-500 to-green-600 rounded-2xl p-6 text-white shadow-lg transform hover:scale-105 transition-transform duration-200'>
+          <div className='flex justify-between items-start'>
+            <div>
+              <p className='text-green-100 text-sm font-medium'>Total Posts</p>
+              <p className='text-3xl font-bold mt-2'>{totalPosts}</p>
+              <div className='flex items-center mt-3'>
+                <HiTrendingUp className='text-green-300 mr-1' />
+                <span className='text-green-300 text-sm font-medium'>+{lastMonthPosts} this month</span>
+              </div>
             </div>
-            <HiAnnotation className='bg-indigo-600 text-white rounded-full text-5xl p-3 shadow-lg' />
-          </div>
-          <div className='flex gap-2 text-sm'>
-            <span className='text-green-500 flex items-center'>
-              <HiArrowNarrowUp />
-              {lastMonthComments}
-            </span>
-            <div className='text-gray-500'>Last month</div>
+            <div className='bg-white/20 p-3 rounded-xl'>
+              <HiNewspaper className='text-2xl' />
+            </div>
           </div>
         </div>
 
-        <div className='flex flex-col p-3 dark:bg-slate-800 gap-4 md:w-72 w-full rounded-md shadow-md'>
-          <div className='flex justify-between'>
-            <div className=''>
-              <h3 className='text-gray-500 text-md uppercase'>Total Posts</h3>
-              <p className='text-2xl'>{totalPosts}</p>
+        {/* Comments Card */}
+        <div className='bg-gradient-to-br from-purple-500 to-purple-600 rounded-2xl p-6 text-white shadow-lg transform hover:scale-105 transition-transform duration-200'>
+          <div className='flex justify-between items-start'>
+            <div>
+              <p className='text-purple-100 text-sm font-medium'>Total Comments</p>
+              <p className='text-3xl font-bold mt-2'>{totalComments}</p>
+              <div className='flex items-center mt-3'>
+                <HiTrendingUp className='text-green-300 mr-1' />
+                <span className='text-green-300 text-sm font-medium'>+{lastMonthComments} this month</span>
+              </div>
             </div>
-            <HiDocumentText className='bg-lime-600 text-white rounded-full text-5xl p-3 shadow-lg' />
-          </div>
-          <div className='flex gap-2 text-sm'>
-            <span className='text-green-500 flex items-center'>
-              <HiArrowNarrowUp />
-              {lastMonthPosts}
-            </span>
-            <div className='text-gray-500'>Last month</div>
+            <div className='bg-white/20 p-3 rounded-xl'>
+              <HiChat className='text-2xl' />
+            </div>
           </div>
         </div>
       </div>
 
-      {/* Recent Data Tables */}
-      <div className='flex flex-wrap gap-4 py-3 mx-auto justify-center'>
+      {/* Recent Data Section */}
+      <div className='grid grid-cols-1 xl:grid-cols-3 gap-6'>
         
-        {/* Recent Users Table */}
-        <div className='flex flex-col w-full md:w-auto shadow-md p-2 rounded-md dark:bg-gray-800'>
-          <div className='flex justify-between p-3 text-sm font-semibold'>
-            <h1 className='text-center p-2'>Recent users</h1>
-            <Button outline color='purple'>
-              <Link to={'/dashboard?tab=users'}>See all</Link>
-            </Button>
+        {/* Recent Users */}
+        <div className='bg-white dark:bg-gray-800 rounded-2xl shadow-lg border border-gray-100 dark:border-gray-700'>
+          <div className='p-6 border-b border-gray-200 dark:border-gray-600'>
+            <div className='flex justify-between items-center'>
+              <div>
+                <h2 className='text-xl font-bold text-gray-800 dark:text-white'>Recent Users</h2>
+                <p className='text-gray-600 dark:text-gray-400 text-sm'>Newly registered users</p>
+              </div>
+              <Button gradientMonochrome="purple" size="sm">
+                <Link to={'/dashboard?tab=users'}>View All</Link>
+              </Button>
+            </div>
           </div>
-          <div className="overflow-x-auto">
-            <table className="w-full text-sm text-left text-gray-500 dark:text-gray-400">
-              <thead className="text-xs text-gray-700 uppercase bg-gray-50 dark:bg-gray-700 dark:text-gray-400">
-                <tr>
-                  <th scope="col" className="px-4 py-3">User image</th>
-                  <th scope="col" className="px-4 py-3">Username</th>
-                </tr>
-              </thead>
-              <tbody>
-                {users && users.map((user) => (
-                  <tr key={user._id} className="bg-white border-b dark:bg-gray-800 dark:border-gray-700 hover:bg-gray-50 dark:hover:bg-gray-600">
-                    <td className="px-4 py-4">
-                      <img
-                        src={user.profilePicture}
-                        alt='user'
-                        className='w-10 h-10 rounded-full bg-gray-500 object-cover'
-                      />
-                    </td>
-                    <td className="px-4 py-4 font-medium text-gray-900 dark:text-white">
-                      {user.username}
-                    </td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
-          </div>
-        </div>
-
-        {/* Recent Comments Table */}
-        <div className='flex flex-col w-full md:w-auto shadow-md p-2 rounded-md dark:bg-gray-800'>
-          <div className='flex justify-between p-3 text-sm font-semibold'>
-            <h1 className='text-center p-2'>Recent comments</h1>
-            <Button outline color='purple'>
-              <Link to={'/dashboard?tab=comments'}>See all</Link>
-            </Button>
-          </div>
-          <div className="overflow-x-auto">
-            <table className="w-full text-sm text-left text-gray-500 dark:text-gray-400">
-              <thead className="text-xs text-gray-700 uppercase bg-gray-50 dark:bg-gray-700 dark:text-gray-400">
-                <tr>
-                  <th scope="col" className="px-4 py-3">Comment content</th>
-                  <th scope="col" className="px-4 py-3">Likes</th>
-                </tr>
-              </thead>
-              <tbody>
-                {comments && comments.map((comment) => (
-                  <tr key={comment._id} className="bg-white border-b dark:bg-gray-800 dark:border-gray-700 hover:bg-gray-50 dark:hover:bg-gray-600">
-                    <td className="px-4 py-4 max-w-xs">
-                      <p className='line-clamp-2 text-gray-900 dark:text-white'>
-                        {comment.content}
+          <div className='p-4'>
+            {users.length > 0 ? (
+              <div className='space-y-4'>
+                {users.map((user) => (
+                  <div key={user._id} className='flex items-center space-x-4 p-3 rounded-lg hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors'>
+                    <img
+                      src={user.profilePicture}
+                      alt={user.username}
+                      className='w-12 h-12 rounded-full border-2 border-purple-200 dark:border-purple-800'
+                    />
+                    <div className='flex-1'>
+                      <p className='font-semibold text-gray-800 dark:text-white'>{user.username}</p>
+                      <p className='text-sm text-gray-500 dark:text-gray-400'>{user.email}</p>
+                    </div>
+                    <div className='text-right'>
+                      <p className='text-xs text-gray-500 dark:text-gray-400'>
+                        {new Date(user.createdAt).toLocaleDateString()}
                       </p>
-                    </td>
-                    <td className="px-4 py-4">
-                      <span className={`px-2 py-1 rounded-full text-xs font-semibold ${
-                        comment.numberOfLikes > 0 
-                          ? 'bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-200'
-                          : 'bg-gray-100 text-gray-800 dark:bg-gray-700 dark:text-gray-300'
-                      }`}>
-                        {comment.numberOfLikes}
-                      </span>
-                    </td>
-                  </tr>
+                    </div>
+                  </div>
                 ))}
-              </tbody>
-            </table>
+              </div>
+            ) : (
+              <div className='text-center py-8'>
+                <HiOutlineUserGroup className='mx-auto text-4xl text-gray-400 mb-3' />
+                <p className='text-gray-500 dark:text-gray-400'>No users yet</p>
+              </div>
+            )}
           </div>
         </div>
 
-        {/* Recent Posts Table */}
-        <div className='flex flex-col w-full md:w-auto shadow-md p-2 rounded-md dark:bg-gray-800'>
-          <div className='flex justify-between p-3 text-sm font-semibold'>
-            <h1 className='text-center p-2'>Recent posts</h1>
-            <Button outline color='purple'>
-              <Link to={'/dashboard?tab=posts'}>See all</Link>
-            </Button>
+        {/* Recent Posts */}
+        <div className='bg-white dark:bg-gray-800 rounded-2xl shadow-lg border border-gray-100 dark:border-gray-700'>
+          <div className='p-6 border-b border-gray-200 dark:border-gray-600'>
+            <div className='flex justify-between items-center'>
+              <div>
+                <h2 className='text-xl font-bold text-gray-800 dark:text-white'>Recent Posts</h2>
+                <p className='text-gray-600 dark:text-gray-400 text-sm'>Latest published articles</p>
+              </div>
+              <Button gradientMonochrome="green" size="sm">
+                <Link to={'/dashboard?tab=posts'}>View All</Link>
+              </Button>
+            </div>
           </div>
-          <div className="overflow-x-auto">
-            <table className="w-full text-sm text-left text-gray-500 dark:text-gray-400">
-              <thead className="text-xs text-gray-700 uppercase bg-gray-50 dark:bg-gray-700 dark:text-gray-400">
-                <tr>
-                  <th scope="col" className="px-4 py-3">Post image</th>
-                  <th scope="col" className="px-4 py-3">Post Title</th>
-                  <th scope="col" className="px-4 py-3">Category</th>
-                </tr>
-              </thead>
-              <tbody>
-                {posts && posts.map((post) => (
-                  <tr key={post._id} className="bg-white border-b dark:bg-gray-800 dark:border-gray-700 hover:bg-gray-50 dark:hover:bg-gray-600">
-                    <td className="px-4 py-4">
-                      <img
-                        src={post.image}
-                        alt='post'
-                        className='w-14 h-10 rounded-md bg-gray-500 object-cover'
-                      />
-                    </td>
-                    <td className="px-4 py-4 font-medium text-gray-900 dark:text-white max-w-xs">
-                      <p className='line-clamp-2'>{post.title}</p>
-                    </td>
-                    <td className="px-4 py-4">
-                      <span className="px-2 py-1 bg-blue-100 text-blue-800 dark:bg-blue-900 dark:text-blue-200 rounded-full text-xs">
-                        {post.category}
-                      </span>
-                    </td>
-                  </tr>
+          <div className='p-4'>
+            {posts.length > 0 ? (
+              <div className='space-y-4'>
+                {posts.map((post) => (
+                  <div key={post._id} className='flex items-center space-x-4 p-3 rounded-lg hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors'>
+                    <img
+                      src={post.image}
+                      alt={post.title}
+                      className='w-16 h-12 rounded-lg object-cover border border-gray-200 dark:border-gray-600'
+                    />
+                    <div className='flex-1 min-w-0'>
+                      <p className='font-semibold text-gray-800 dark:text-white truncate' title={post.title}>
+                        {post.title}
+                      </p>
+                      <div className='flex items-center space-x-2 mt-1'>
+                        <span className='px-2 py-1 bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-200 text-xs rounded-full'>
+                          {post.category}
+                        </span>
+                      </div>
+                    </div>
+                  </div>
                 ))}
-              </tbody>
-            </table>
+              </div>
+            ) : (
+              <div className='text-center py-8'>
+                <HiDocumentText className='mx-auto text-4xl text-gray-400 mb-3' />
+                <p className='text-gray-500 dark:text-gray-400'>No posts yet</p>
+              </div>
+            )}
           </div>
+        </div>
+
+        {/* Recent Comments */}
+        <div className='bg-white dark:bg-gray-800 rounded-2xl shadow-lg border border-gray-100 dark:border-gray-700'>
+          <div className='p-6 border-b border-gray-200 dark:border-gray-600'>
+            <div className='flex justify-between items-center'>
+              <div>
+                <h2 className='text-xl font-bold text-gray-800 dark:text-white'>Recent Comments</h2>
+                <p className='text-gray-600 dark:text-gray-400 text-sm'>Latest user interactions</p>
+              </div>
+              <Button gradientMonochrome="blue" size="sm">
+                <Link to={'/dashboard?tab=comments'}>View All</Link>
+              </Button>
+            </div>
+          </div>
+          <div className='p-4'>
+            {comments.length > 0 ? (
+              <div className='space-y-4'>
+                {comments.map((comment) => (
+                  <div key={comment._id} className='p-3 rounded-lg hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors'>
+                    <div className='flex justify-between items-start mb-2'>
+                      <p className='text-sm text-gray-600 dark:text-gray-400 line-clamp-2 flex-1 mr-2'>
+                        "{comment.content}"
+                      </p>
+                      <span className={`px-2 py-1 rounded-full text-xs font-semibold flex-shrink-0 ${
+                        comment.numberOfLikes > 0 
+                          ? 'bg-blue-100 text-blue-800 dark:bg-blue-900 dark:text-blue-200'
+                          : 'bg-gray-100 text-gray-600 dark:bg-gray-700 dark:text-gray-400'
+                      }`}>
+                        {comment.numberOfLikes} ❤️
+                      </span>
+                    </div>
+                    <div className='flex justify-between items-center text-xs text-gray-500 dark:text-gray-400'>
+                      <span>Post: {comment.postId?.substring(0, 8)}...</span>
+                      <span>{new Date(comment.createdAt).toLocaleDateString()}</span>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            ) : (
+              <div className='text-center py-8'>
+                <HiAnnotation className='mx-auto text-4xl text-gray-400 mb-3' />
+                <p className='text-gray-500 dark:text-gray-400'>No comments yet</p>
+              </div>
+            )}
+          </div>
+        </div>
+      </div>
+
+      {/* Quick Stats Footer */}
+      <div className='mt-8 grid grid-cols-2 md:grid-c-4 gap-4'>
+        <div className='bg-gray-50 dark:bg-gray-700 rounded-xl p-4 text-center'>
+          <HiOutlineUserGroup className='mx-auto text-2xl text-blue-500 mb-2' />
+          <p className='text-2xl font-bold text-gray-800 dark:text-white'>{totalUsers}</p>
+          <p className='text-sm text-gray-600 dark:text-gray-400'>Total Users</p>
+        </div>
+        <div className='bg-gray-50 dark:bg-gray-700 rounded-xl p-4 text-center'>
+          <HiDocumentText className='mx-auto text-2xl text-green-500 mb-2' />
+          <p className='text-2xl font-bold text-gray-800 dark:text-white'>{totalPosts}</p>
+          <p className='text-sm text-gray-600 dark:text-gray-400'>Total Posts</p>
+        </div>
+        <div className='bg-gray-50 dark:bg-gray-700 rounded-xl p-4 text-center'>
+          <HiAnnotation className='mx-auto text-2xl text-purple-500 mb-2' />
+          <p className='text-2xl font-bold text-gray-800 dark:text-white'>{totalComments}</p>
+          <p className='text-sm text-gray-600 dark:text-gray-400'>Total Comments</p>
+        </div>
+        <div className='bg-gray-50 dark:bg-gray-700 rounded-xl p-4 text-center'>
+          <HiTrendingUp className='mx-auto text-2xl text-orange-500 mb-2' />
+          <p className='text-2xl font-bold text-gray-800 dark:text-white'>{lastMonthUsers + lastMonthPosts + lastMonthComments}</p>
+          <p className='text-sm text-gray-600 dark:text-gray-400'>Monthly Growth</p>
         </div>
       </div>
     </div>
