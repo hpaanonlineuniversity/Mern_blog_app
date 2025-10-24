@@ -7,7 +7,7 @@ export default function Projects() {
       id: 1,
       title: "Interactive Portfolio Website",
       description: "A modern, responsive portfolio with smooth animations and dark mode support.",
-      image: "/api/placeholder/400/250",
+      image: "https://images.unsplash.com/photo-1551650975-87deedd944c3?w=400&h=250&fit=crop",
       technologies: ["React", "Tailwind CSS", "Framer Motion"],
       difficulty: "Intermediate",
       duration: "2 weeks",
@@ -19,7 +19,7 @@ export default function Projects() {
       id: 2,
       title: "E-commerce Dashboard",
       description: "Complete admin dashboard with analytics, product management, and order tracking.",
-      image: "/api/placeholder/400/250",
+      image: "https://images.unsplash.com/photo-1551288049-bebda4e38f71?w=400&h=250&fit=crop",
       technologies: ["Next.js", "TypeScript", "Chart.js"],
       difficulty: "Advanced",
       duration: "4 weeks",
@@ -31,7 +31,7 @@ export default function Projects() {
       id: 3,
       title: "Weather App",
       description: "Beautiful weather application with location detection and 7-day forecasts.",
-      image: "/api/placeholder/400/250",
+      image: "https://images.unsplash.com/photo-1504608524841-42fe6f032b4b?w=400&h=250&fit=crop",
       technologies: ["JavaScript", "API Integration", "CSS3"],
       difficulty: "Beginner",
       duration: "1 week",
@@ -43,7 +43,7 @@ export default function Projects() {
       id: 4,
       title: "Task Management App",
       description: "Productivity app with drag-and-drop functionality and real-time updates.",
-      image: "/api/placeholder/400/250",
+      image: "https://images.unsplash.com/photo-1611224923853-80b023f02d71?w=400&h=250&fit=crop",
       technologies: ["Vue.js", "Firebase", "Tailwind CSS"],
       difficulty: "Intermediate",
       duration: "3 weeks",
@@ -96,6 +96,13 @@ export default function Projects() {
       color: "from-purple-500 to-pink-600"
     }
   ];
+
+  // SVG placeholder for project images
+  const projectPlaceholderSVG = 'data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iNDAwIiBoZWlnaHQ9IjI1MCIgdmlld0JveD0iMCAwIDQwMCAyNTAiIGZpbGw9Im5vbmUiIHhtbG5zPSJodHRwOi8vd3d3LnczLm9yZy8yMDAwL3N2ZyI+CjxyZWN0IHdpZHRoPSI0MDAiIGhlaWdodD0iMjUwIiBmaWxsPSIjRjNGNEY2Ii8+CjxwYXRoIGQ9Ik0xMDAgODBMMTUwIDEzMEwxMDAgMTgwTDUwIDEzMEwxMDAgODBaIiBmaWxsPSIjOTlBM0FGIi8+CjxjaXJjbGUgY3g9IjEwMCIgY3k9IjgwIiByPSI4IiBmaWxsPSIjNkI3MzgwIi8+CjxwYXRoIGQ9Ik0zMDAgMTAwTDM1MCAxNTBMMzAwIDIwMEwyNTAgMTUwTDMwMCAxMDBaIiBmaWxsPSIjOTlBM0FGIi8+CjxjaXJjbGUgY3g9IjMwMCIgY3k9IjEwMCIgcj0iOCIgZmlsbD0iIzZCNzM4MCIvPgo8dGV4dCB4PSIyMDAiIHk9IjIzMCIgdGV4dC1hbmNob3I9Im1pZGRsZSIgZm9udC1mYW1pbHk9IkFyaWFsLCBzYW5zLXNlcmlmIiBmb250LXNpemU9IjE0IiBmaWxsPSIjNkI3MzgwIj5Qcm9qZWN0IFByZXZpZXc8L3RleHQ+Cjwvc3ZnPgo=';
+
+  const handleImageError = (e) => {
+    e.target.src = projectPlaceholderSVG;
+  };
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-slate-50 via-white to-blue-50 dark:from-gray-900 dark:via-gray-800 dark:to-slate-900">
@@ -158,6 +165,7 @@ export default function Projects() {
                     src={project.image}
                     alt={project.title}
                     className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-500"
+                    onError={handleImageError}
                   />
                   <div className="absolute inset-0 bg-gradient-to-t from-black/50 to-transparent"></div>
                 </div>
@@ -211,6 +219,62 @@ export default function Projects() {
                 </div>
               </div>
             ))}
+          </div>
+
+          {/* All Projects Grid */}
+          <div className="mt-16">
+            <h3 className="text-2xl md:text-3xl font-bold text-gray-900 dark:text-white mb-8 text-center">
+              All Projects
+            </h3>
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+              {projects.map((project) => (
+                <div key={project.id} className="group bg-white dark:bg-gray-800 rounded-2xl shadow-lg hover:shadow-xl transform hover:scale-105 transition-all duration-300 overflow-hidden">
+                  <div className="relative h-40 overflow-hidden">
+                    <img
+                      src={project.image}
+                      alt={project.title}
+                      className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-300"
+                      onError={handleImageError}
+                    />
+                    {project.featured && (
+                      <div className="absolute top-3 right-3">
+                        <FaStar className="w-4 h-4 text-yellow-400" />
+                      </div>
+                    )}
+                  </div>
+                  
+                  <div className="p-4">
+                    <div className="flex items-center justify-between mb-2">
+                      <span className={`px-2 py-1 rounded-full text-xs font-semibold ${
+                        project.difficulty === 'Beginner' ? 'bg-green-100 text-green-800 dark:bg-green-900/30 dark:text-green-300' :
+                        project.difficulty === 'Intermediate' ? 'bg-blue-100 text-blue-800 dark:bg-blue-900/30 dark:text-blue-300' :
+                        'bg-purple-100 text-purple-800 dark:bg-purple-900/30 dark:text-purple-300'
+                      }`}>
+                        {project.difficulty}
+                      </span>
+                      <span className="text-xs text-gray-500 dark:text-gray-400">
+                        {project.duration}
+                      </span>
+                    </div>
+                    
+                    <h4 className="font-bold text-gray-900 dark:text-white mb-2">
+                      {project.title}
+                    </h4>
+                    <p className="text-gray-600 dark:text-gray-300 text-sm mb-3 line-clamp-2">
+                      {project.description}
+                    </p>
+                    
+                    <div className="flex flex-wrap gap-1 mb-3">
+                      {project.technologies.slice(0, 3).map((tech, index) => (
+                        <span key={index} className="px-2 py-1 bg-gray-100 dark:bg-gray-700 text-gray-700 dark:text-gray-300 rounded text-xs">
+                          {tech}
+                        </span>
+                      ))}
+                    </div>
+                  </div>
+                </div>
+              ))}
+            </div>
           </div>
         </div>
       </section>

@@ -7,7 +7,7 @@ export default function About() {
       name: "ဘားအံ",
       role: "Founder & Writer",
       bio: "Passionate about sharing knowledge and experiences through writing.",
-      image: "/api/placeholder/150/150",
+      image: "https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?w=400&h=400&fit=crop&crop=face",
       social: {
         github: "#",
         linkedin: "#",
@@ -52,9 +52,12 @@ export default function About() {
               <div className="relative">
                 <div className="absolute -inset-4 bg-gradient-to-r from-blue-600 to-purple-600 rounded-3xl blur opacity-20"></div>
                 <img
-                  src="/api/placeholder/600/400"
+                  src="https://images.unsplash.com/photo-1486312338219-ce68d2c6f44d?w=600&h=400&fit=crop"
                   alt="About our blog"
                   className="relative rounded-2xl shadow-2xl w-full h-80 object-cover"
+                  onError={(e) => {
+                    e.target.src = 'data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iNjAwIiBoZWlnaHQ9IjQwMCIgdmlld0JveD0iMCAwIDYwMCA0MDAiIGZpbGw9Im5vbmUiIHhtbG5zPSJodHRwOi8vd3d3LnczLm9yZy8yMDAwL3N2ZyI+CjxyZWN0IHdpZHRoPSI2MDAiIGhlaWdodD0iNDAwIiBmaWxsPSIjRjNGNEY2Ii8+CjxwYXRoIGQ9Ik0zMDAgMjAwTDM1MCAyNTBMMzAwIDMwMEwyNTAgMjUwTDMwMCAyMDBaIiBmaWxsPSIjOTlBM0FGIi8+CjxjaXJjbGUgY3g9IjMwMCIgY3k9IjIwMCIgcj0iMTAiIGZpbGw9IiM2QjczODAiLz4KPHRleHQgeD0iMzAwIiB5PSIzNTAiIHRleHQtYW5jaG9yPSJtaWRkbGUiIGZvbnQtZmFtaWx5PSJBcmlhbCwgc2Fucy1zZXJpZiIgZm9udC1zaXplPSIxOCIgZmlsbD0iIzZCNzM4MCI+QmFyIEFuJ3MgQmxvZzwvdGV4dD4KPC9zdmc+';
+                  }}
                 />
               </div>
             </div>
@@ -147,6 +150,9 @@ export default function About() {
                     src={teamMembers[0].image}
                     alt={teamMembers[0].name}
                     className="relative w-32 h-32 rounded-full object-cover border-4 border-white dark:border-gray-800 mx-auto"
+                    onError={(e) => {
+                      e.target.src = 'data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMTUwIiBoZWlnaHQ9IjE1MCIgdmlld0JveD0iMCAwIDE1MCAxNTAiIGZpbGw9Im5vbmUiIHhtbG5zPSJodHRwOi8vd3d3LnczLm9yZy8yMDAwL3N2ZyI+CjxyZWN0IHdpZHRoPSIxNTAiIGhlaWdodD0iMTUwIiBmaWxsPSIjRjNGNEY2Ii8+CjxjaXJjbGUgY3g9Ijc1IiBjeT0iNjAiIHI9IjMwIiBmaWxsPSIjOTlBM0FGIi8+CjxwYXRoIGQ9Ik0zMCAxMjBDMzAgMTA1IDQ1IDkwIDc1IDkwUzEyMCAxMDUgMTIwIDEyMFYxNTBIMzBWMTIwWiIgZmlsbD0iIzlBQTNBQiIvPgo8L3N2Zz4K';
+                    }}
                   />
                 </div>
                 
