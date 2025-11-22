@@ -36,6 +36,13 @@ const userSchema = new mongoose.Schema(
     emailVerificationExpires: {
       type: Date,
     },
+    // ✅ Password reset အတွက် field အသစ်တွေ
+    passwordResetToken: {
+      type: String,
+    },
+    passwordResetExpires: {
+      type: Date,
+    },
   },
   { timestamps: true }
 );

@@ -1,3 +1,5 @@
+//userSlice.js
+
 import { createSlice } from '@reduxjs/toolkit';
 
 // ✅ FIX: Proper initial state with verification object

@@ -1,10 +1,12 @@
+// controllers/auth_controller.js
+
 import User from '../models/user_model.js';
 import bcryptjs from 'bcryptjs';
 import { errorHandler } from '../utils/error.js';
 import { JWT_SECRET } from '../configs/config.js';
 import jwt from 'jsonwebtoken';
 import crypto from 'crypto';
-import { sendVerificationEmail } from '../utils/emailService.js';
+import { sendVerificationEmail, sendPasswordResetEmail } from '../utils/emailService.js';
 
 export const signup = async (req, res, next) => {
   try {
@@ -267,5 +269,94 @@ export const google = async (req, res, next) => {
     }
   } catch (error) {
     next(error);
+  }
+};
+// ✅ Forgot Password - Reset token ပို့ပေးမယ်
+export const forgotPassword = async (req, res, next) => {
+  try {
+    const { email } = req.body;
+
+    if (!email?.trim()) {
+      return next(errorHandler(400, 'Email is required'));
+    }
+
+    // User ရှိမရှိ စစ်မယ်
+    const user = await User.findOne({ email: email.trim().toLowerCase() });
+    
+    if (!user) {
+      // Security အတွက် user မရှိရင်လည်း success response ပြန်ပေးမယ်
+      return res.status(200).json({
+        success: true,
+        message: 'If the email exists, a password reset link has been sent.',
+      });
+    }
+
+    // Password reset token generate လုပ်မယ်
+    const resetToken = crypto.randomBytes(32).toString('hex');
+    const resetExpires = new Date(Date.now() + 60 * 60 * 1000); // 1 hour
+
+    // User ကို update လုပ်မယ်
+    user.passwordResetToken = resetToken;
+    user.passwordResetExpires = resetExpires;
+    await user.save();
+
+    // Reset email ပို့မယ်
+    try {
+      await sendPasswordResetEmail(user.email, resetToken);
+      
+      res.status(200).json({
+        success: true,
+        message: 'Password reset link has been sent to your email.',
+      });
+    } catch (emailError) {
+      console.error('Failed to send reset email:', emailError);
+      return next(errorHandler(500, 'Failed to send reset email'));
+    }
+
+  } catch (error) {
+    next(errorHandler(500, 'Error in forgot password'));
+  }
+};
+
+// ✅ Reset Password - New password သတ်မှတ်မယ်
+export const resetPassword = async (req, res, next) => {
+  try {
+    const { token, newPassword } = req.body;
+
+    if (!token || !newPassword) {
+      return next(errorHandler(400, 'Token and new password are required'));
+    }
+
+    // Password strength check
+    if (newPassword.length < 6) {
+      return next(errorHandler(400, 'Password must be at least 6 characters'));
+    }
+
+    // Token valid ဖြစ်မဖြစ် စစ်မယ်
+    const user = await User.findOne({
+      passwordResetToken: token,
+      passwordResetExpires: { $gt: new Date() } // Token မသက်တမ်းမကုန်သေး
+    });
+
+    if (!user) {
+      return next(errorHandler(400, 'Invalid or expired reset token'));
+    }
+
+    // New password hash လုပ်မယ်
+    const hashedPassword = bcryptjs.hashSync(newPassword, 12);
+
+    // User update လုပ်မယ်
+    user.password = hashedPassword;
+    user.passwordResetToken = undefined;
+    user.passwordResetExpires = undefined;
+    await user.save();
+
+    res.status(200).json({
+      success: true,
+      message: 'Password reset successfully! You can now sign in with your new password.',
+    });
+
+  } catch (error) {
+    next(errorHandler(500, 'Error resetting password'));
   }
 };

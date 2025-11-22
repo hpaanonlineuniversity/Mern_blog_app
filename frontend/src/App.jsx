@@ -1,3 +1,5 @@
+//app.jsx
+
 import { BrowserRouter , Routes , Route} from 'react-router';
 import Search from './pages/Search';
 import Home from './pages/Home';
@@ -16,6 +18,8 @@ import UpdatePost from './pages/UpdatePost';
 import PostPage from './pages/PostPage';
 import OnlyAdminPrivateRoute from './components/OnlyAdminPrivateRoute';
 import VerifyEmail from './pages/VerifyEmail'; // ✅ New import
+import ForgotPassword from './pages/ForgotPassword'; // ✅ New import
+import ResetPassword from './pages/ResetPassword';   // ✅ New import
 
 const App = () => {
   return (
@@ -25,6 +29,8 @@ const App = () => {
         <Routes>
           <Route path='/sign-in' element={<Signin />} />
           <Route path='/sign-up' element={<Signup />} />
+          <Route path='/forgot-password' element={<ForgotPassword />} /> {/* ✅ New route */}
+          <Route path='/reset-password' element={<ResetPassword />} />   {/* ✅ New route */}
           <Route path='/auth/callback' element={<Callback/>} />
           <Route path='/verify-email' element={<VerifyEmail />} /> {/* ✅ New route */}
 
