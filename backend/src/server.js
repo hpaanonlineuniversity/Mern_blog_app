@@ -1,6 +1,10 @@
 //server.js
 
 import express from 'express';
+import session from 'express-session';
+import { redisStore } from './configs/redis.js';
+import { SESSION_SECRET } from './configs/config.js';
+
 import connectDB from './configs/db.js';
 import userRoutes from './routes/user_route.js';
 import authRoutes from './routes/auth_route.js';
@@ -49,6 +53,19 @@ app.use(express.json({ limit: '10mb' })); // Default: 100kb
 app.use(express.urlencoded({ extended: true, limit: '10mb' }));
 
 app.use(cookieParser());
+
+// ✅ Session middleware
+app.use(session({
+  store: redisStore,
+  secret: SESSION_SECRET, 
+  resave: false,
+  saveUninitialized: false,
+  cookie: {
+    secure: false, // Development အတွက် false, Production မှာ true ပြောင်းပါ
+    httpOnly: true,
+    maxAge: 24 * 60 * 60 * 1000 // 1 day
+  }
+}));
 
 
 app.get('/', (req, res) => {
