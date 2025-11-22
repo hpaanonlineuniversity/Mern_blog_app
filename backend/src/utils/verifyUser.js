@@ -1,3 +1,5 @@
+//urils/verifyUser.js
+
 import jwt from 'jsonwebtoken';
 import { errorHandler } from './error.js';
 import { JWT_SECRET } from '../configs/config.js'

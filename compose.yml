@@ -20,6 +20,9 @@ services:
       - USERNAME=${USERNAME}
       - EMAIL=${EMAIL}
       - PASSWORD=${PASSWORD}
+      - EMAIL_USER=${EMAIL_USER}
+      - EMAIL_PASS=${EMAIL_PASS}
+      - CLIENT_URL=${CLIENT_URL} 
     depends_on:
       - mongodb
   mongodb:

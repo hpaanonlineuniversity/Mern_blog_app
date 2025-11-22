@@ -15,7 +15,7 @@ import CreatePost from './pages/CreatePost';
 import UpdatePost from './pages/UpdatePost';
 import PostPage from './pages/PostPage';
 import OnlyAdminPrivateRoute from './components/OnlyAdminPrivateRoute';
-
+import VerifyEmail from './pages/VerifyEmail'; // ✅ New import
 
 const App = () => {
   return (
@@ -23,10 +23,10 @@ const App = () => {
       <BrowserRouter>
         <Header/>
         <Routes>
-
           <Route path='/sign-in' element={<Signin />} />
           <Route path='/sign-up' element={<Signup />} />
           <Route path='/auth/callback' element={<Callback/>} />
+          <Route path='/verify-email' element={<VerifyEmail />} /> {/* ✅ New route */}
 
           <Route  element={<PrivateRoute/>} >
             <Route path='/' element={<Home/>} />

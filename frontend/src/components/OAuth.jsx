@@ -15,10 +15,10 @@ export default function OAuth() {
       });
 
       if (error) {
-        console.log('Could not login with Github', error);
+        console.log('Could not login with google', error);
       }
       } catch (error) {
-        console.log('Could not login with Github', error);
+        console.log('Could not login with google', error);
       }
     }; 
   return (

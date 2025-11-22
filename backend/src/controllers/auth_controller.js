@@ -3,6 +3,8 @@ import bcryptjs from 'bcryptjs';
 import { errorHandler } from '../utils/error.js';
 import { JWT_SECRET } from '../configs/config.js';
 import jwt from 'jsonwebtoken';
+import crypto from 'crypto';
+import { sendVerificationEmail } from '../utils/emailService.js';
 
 export const signup = async (req, res, next) => {
   try {
@@ -44,28 +46,42 @@ export const signup = async (req, res, next) => {
     // 5. Hash password
     const hashedPassword = bcryptjs.hashSync(password, 12);
 
-    // 6. Create new user
+    // 6. Generate email verification token
+    const emailVerificationToken = crypto.randomBytes(32).toString('hex');
+    const emailVerificationExpires = new Date(Date.now() + 24 * 60 * 60 * 1000); // 24 hours
+
+    // 7. Create new user
     const newUser = new User({
       username: username.trim().toLowerCase(),
       email: email.trim().toLowerCase(),
       password: hashedPassword,
+      emailVerificationToken,
+      emailVerificationExpires,
     });
 
-    // 7. Save user to database
+    // 8. Save user to database
     await newUser.save();
 
-    // 8. Remove password from response
-    const { password: _, ...userWithoutPassword } = newUser._doc;
+    // 9. Send verification email
+    try {
+      await sendVerificationEmail(newUser.email, emailVerificationToken);
+    } catch (emailError) {
+      // Email ပို့မရရင်တောင် user create လုပ်ပေးမယ်
+      console.error('Failed to send verification email:', emailError);
+    }
 
-    // 9. Send success response
+    // 10. Remove sensitive data from response
+    const { password: _, emailVerificationToken: __, ...userWithoutSensitiveData } = newUser._doc;
+
+    // 11. Send success response
     res.status(201).json({
       success: true,
-      message: 'User registered successfully',
-      user: userWithoutPassword
+      message: 'User registered successfully. Please check your email for verification link.',
+      user: userWithoutSensitiveData
     });
 
   } catch (error) {
-    // 10. Handle specific database errors
+    // 12. Handle specific database errors
     if (error.code === 11000) {
       const field = Object.keys(error.keyPattern)[0];
       return next(errorHandler(409, `${field} already exists`));
@@ -76,11 +92,86 @@ export const signup = async (req, res, next) => {
       return next(errorHandler(400, errors.join(', ')));
     }
 
-    // 11. Handle other errors
+    // 13. Handle other errors
     next(errorHandler(500, 'Internal server error during signup'));
   }
 };
 
+// ✅ Email verification controller
+export const verifyEmail = async (req, res, next) => {
+  try {
+    const { token } = req.body;
+
+    if (!token) {
+      return next(errorHandler(400, 'Verification token is required'));
+    }
+
+    // Find user by verification token
+    const user = await User.findOne({
+      emailVerificationToken: token,
+      emailVerificationExpires: { $gt: new Date() } // Token hasn't expired
+    });
+
+    if (!user) {
+      return next(errorHandler(400, 'Invalid or expired verification token'));
+    }
+
+    // Update user as verified
+    user.isEmailVerified = true;
+    user.emailVerificationToken = undefined;
+    user.emailVerificationExpires = undefined;
+    await user.save();
+
+    res.status(200).json({
+      success: true,
+      message: 'Email verified successfully! You can now sign in.',
+    });
+  } catch (error) {
+    next(errorHandler(500, 'Error verifying email'));
+  }
+};
+
+// ✅ Resend verification email controller
+export const resendVerificationEmail = async (req, res, next) => {
+  try {
+    const { email } = req.body;
+
+    if (!email) {
+      return next(errorHandler(400, 'Email is required'));
+    }
+
+    const user = await User.findOne({ email: email.toLowerCase() });
+
+    if (!user) {
+      return next(errorHandler(404, 'User not found'));
+    }
+
+    if (user.isEmailVerified) {
+      return next(errorHandler(400, 'Email is already verified'));
+    }
+
+    // Generate new verification token
+    const emailVerificationToken = crypto.randomBytes(32).toString('hex');
+    const emailVerificationExpires = new Date(Date.now() + 24 * 60 * 60 * 1000);
+
+    // Update user with new token
+    user.emailVerificationToken = emailVerificationToken;
+    user.emailVerificationExpires = emailVerificationExpires;
+    await user.save();
+
+    // Send verification email
+    await sendVerificationEmail(user.email, emailVerificationToken);
+
+    res.status(200).json({
+      success: true,
+      message: 'Verification email sent successfully. Please check your email.',
+    });
+  } catch (error) {
+    next(errorHandler(500, 'Error resending verification email'));
+  }
+};
+
+// Signin controller ကိုလည်း update လုပ်မယ်
 export const signin = async (req, res, next) => {
   const { email, password } = req.body;
 
@@ -93,10 +184,17 @@ export const signin = async (req, res, next) => {
     if (!validUser) {
       return next(errorHandler(404, 'User not found'));
     }
+
+    // ✅ Check if email is verified
+    if (!validUser.isEmailVerified) {
+      return next(errorHandler(403, 'Please verify your email before signing in'));
+    }
+
     const validPassword = bcryptjs.compareSync(password, validUser.password);
     if (!validPassword) {
       return next(errorHandler(400, 'Invalid password'));
     }
+
     const token = jwt.sign(
       { id: validUser._id, isAdmin: validUser.isAdmin },
       JWT_SECRET
@@ -115,11 +213,20 @@ export const signin = async (req, res, next) => {
   }
 };
 
+// Google auth ကိုလည်း update လုပ်မယ်
 export const google = async (req, res, next) => {
   const { email, name, googlePhotoUrl } = req.body;
   try {
     const user = await User.findOne({ email });
     if (user) {
+      // ✅ Google user တွေကို auto-verify လုပ်မယ်
+      if (!user.isEmailVerified) {
+        user.isEmailVerified = true;
+        user.emailVerificationToken = undefined;
+        user.emailVerificationExpires = undefined;
+        await user.save();
+      }
+
       const token = jwt.sign(
         { id: user._id, isAdmin: user.isAdmin },
         JWT_SECRET
@@ -143,6 +250,7 @@ export const google = async (req, res, next) => {
         email,
         password: hashedPassword,
         profilePicture: googlePhotoUrl,
+        isEmailVerified: true, // ✅ Google users are auto-verified
       });
       await newUser.save();
       const token = jwt.sign(

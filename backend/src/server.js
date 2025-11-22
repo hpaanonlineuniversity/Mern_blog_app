@@ -1,3 +1,5 @@
+//server.js
+
 import express from 'express';
 import connectDB from './configs/db.js';
 import userRoutes from './routes/user_route.js';

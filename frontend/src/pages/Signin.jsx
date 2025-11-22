@@ -1,22 +1,52 @@
 import { Alert, Button, Label, Spinner, TextInput, Card } from 'flowbite-react';
-import { useState } from 'react';
-import { Link , useNavigate } from 'react-router';
+import { useState, useEffect } from 'react';
+import { Link, useNavigate } from 'react-router';
 import OAuth from '../components/OAuth';
 import { useDispatch, useSelector } from 'react-redux';
 import {
   signInStart,
   signInSuccess,
   signInFailure,
+  clearError,
+  clearVerification,
+  resendVerificationStart,
+  resendVerificationSuccess,
+  resendVerificationFailure,
+  initializeVerificationState,
 } from '../redux/user/userSlice';
 
 export default function SignIn() {
   const [formData, setFormData] = useState({});
-  const { loading, error: errorMessage } = useSelector((state) => state.user);
+  const [showResendOption, setShowResendOption] = useState(false);
+  
+  // ✅ FIX: Safe state access with default values
+  const { 
+    loading, 
+    error: errorMessage,
+    verification 
+  } = useSelector((state) => state.user);
+  
   const dispatch = useDispatch();
   const navigate = useNavigate();
 
+  // ✅ Initialize verification state on component mount
+  useEffect(() => {
+    dispatch(clearError());
+    dispatch(initializeVerificationState());
+    dispatch(clearVerification());
+  }, [dispatch]);
+
   const handleChange = (e) => {
     setFormData({ ...formData, [e.target.id]: e.target.value.trim() });
+    // Reset resend option when user types
+    if (showResendOption) {
+      setShowResendOption(false);
+      dispatch(clearVerification());
+    }
+    // Clear error when user starts typing
+    if (errorMessage) {
+      dispatch(clearError());
+    }
   };
 
   const handleSubmit = async (e) => {
@@ -25,6 +55,7 @@ export default function SignIn() {
     if (!formData.email || !formData.password) {
       return dispatch(signInFailure('Please fill all the fields'));
     }
+    
     try {
       dispatch(signInStart());
       const res = await fetch('/api/auth/signin', {
@@ -33,19 +64,23 @@ export default function SignIn() {
         credentials: 'include',
         body: JSON.stringify(formData),
       });
+      
       const data = await res.json();
 
-      console.log(data);
+      console.log('Signin response:', data);
 
       if (data.success === false) {
+        // ✅ Check if it's an email verification error
+        if (data.message && (
+          data.message.includes('verify your email') || 
+          data.message.includes('email verification') ||
+          data.message.includes('Please verify')
+        )) {
+          setShowResendOption(true);
+        }
         dispatch(signInFailure(data.message));
       }
-/*
-      if (res.ok) {
-        dispatch(signInSuccess(data));
-        navigate('/');
-      }
-        */
+
       if (res.ok) {
         // User data ကို clear ဖြစ်အောင် format လုပ်ပါ
         const userData = {
@@ -54,6 +89,7 @@ export default function SignIn() {
           email: data.email,
           profilePicture: data.profilePicture,
           isAdmin: data.isAdmin,
+          isEmailVerified: data.isEmailVerified,
         };
         dispatch(signInSuccess(userData));
         navigate('/');
@@ -61,8 +97,47 @@ export default function SignIn() {
     } catch (error) {
       dispatch(signInFailure(error.message));
     }
-
   };
+
+  const handleResendVerification = async () => {
+    if (!formData.email) {
+      return dispatch(resendVerificationFailure('Please enter your email address first.'));
+    }
+
+    try {
+      dispatch(resendVerificationStart());
+
+      const res = await fetch('/api/auth/resend-verification', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ email: formData.email }),
+      });
+
+      const data = await res.json();
+
+      if (res.ok) {
+        dispatch(resendVerificationSuccess('✅ Verification email sent! Please check your inbox and spam folder.'));
+        // Auto hide after 5 seconds
+        setTimeout(() => {
+          setShowResendOption(false);
+        }, 5000);
+      } else {
+        dispatch(resendVerificationFailure(data.message || 'Failed to resend verification email.'));
+      }
+    } catch (error) {
+      dispatch(resendVerificationFailure('Network error. Please try again.'));
+    }
+  };
+
+  const handleCloseResendOption = () => {
+    setShowResendOption(false);
+    dispatch(clearVerification());
+  };
+
+  // ✅ FIX: Safe access to verification properties with fallbacks
+  const verificationMessage = verification?.message || '';
+  const verificationSuccess = verification?.success || false;
+  const verificationLoading = verification?.loading || false;
 
   return (
     <div className='min-h-screen bg-gray-50 dark:bg-gray-900 py-12 px-4'>
@@ -89,6 +164,55 @@ export default function SignIn() {
               Join our community on GitHub →
             </a>
           </Card>
+
+          {/* Resend Verification Card */}
+          {showResendOption && (
+            <Card className='mb-4 border-l-4 border-l-blue-500 bg-blue-50 dark:bg-blue-900/20'>
+              <div className='text-center'>
+                <h3 className='text-lg font-semibold text-blue-800 dark:text-blue-300 mb-2'>
+                  📧 Email Verification Required
+                </h3>
+                <p className='text-blue-700 dark:text-blue-400 mb-4 text-sm'>
+                  Your email needs to be verified before you can sign in.
+                </p>
+                
+                {verificationMessage ? (
+                  <Alert 
+                    color={verificationSuccess ? 'success' : 'failure'} 
+                    className='mb-3'
+                  >
+                    {verificationMessage}
+                  </Alert>
+                ) : (
+                  <div className='flex flex-col gap-2'>
+                    <Button
+                      color="blue"
+                      onClick={handleResendVerification}
+                      disabled={verificationLoading}
+                      size="sm"
+                      className='w-full'
+                    >
+                      {verificationLoading ? (
+                        <>
+                          <Spinner size='sm' />
+                          <span className='pl-2'>Sending...</span>
+                        </>
+                      ) : (
+                        'Resend Verification Email'
+                      )}
+                    </Button>
+                    <Button
+                      color="light"
+                      onClick={handleCloseResendOption}
+                      size="sm"
+                    >
+                      Cancel
+                    </Button>
+                  </div>
+                )}
+              </div>
+            </Card>
+          )}
 
           {/* Sign In Form Card */}
           <Card>
@@ -174,12 +298,35 @@ export default function SignIn() {
                 </Link>
               </span>
             </div>
+
+            {/* Email Verification Help */}
+            <div className='text-center mt-4'>
+              <p className='text-xs text-gray-500 dark:text-gray-400'>
+                Didn't receive verification email?{' '}
+                <button
+                  onClick={() => setShowResendOption(true)}
+                  className='text-purple-600 hover:text-purple-700 dark:text-purple-400 dark:hover:text-purple-300 hover:underline'
+                >
+                  Click here to resend
+                </button>
+              </p>
+            </div>
           </Card>
 
           {/* Error Message */}
-          {errorMessage && (
+          {errorMessage && !showResendOption && (
             <Alert className='mt-4' color='failure'>
               <span className='font-medium'>Sign in failed!</span> {errorMessage}
+            </Alert>
+          )}
+
+          {/* Global Verification Message (for success cases) */}
+          {verificationMessage && !showResendOption && (
+            <Alert 
+              className='mt-4' 
+              color={verificationSuccess ? 'success' : 'failure'}
+            >
+              {verificationMessage}
             </Alert>
           )}
         </div>

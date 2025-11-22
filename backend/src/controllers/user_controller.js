@@ -1,3 +1,5 @@
+//controllers/user_controller.js
+
 import bcryptjs from 'bcryptjs';
 import { errorHandler } from '../utils/error.js';
 import User from '../models/user_model.js';

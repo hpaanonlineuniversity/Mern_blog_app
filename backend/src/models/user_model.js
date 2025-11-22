@@ -25,6 +25,17 @@ const userSchema = new mongoose.Schema(
       type: Boolean,
       default: false,
     },
+    // ✅ Email verification အတွက် field အသစ်တွေ
+    isEmailVerified: {
+      type: Boolean,
+      default: false,
+    },
+    emailVerificationToken: {
+      type: String,
+    },
+    emailVerificationExpires: {
+      type: Date,
+    },
   },
   { timestamps: true }
 );
